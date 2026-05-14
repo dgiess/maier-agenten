@@ -3,56 +3,75 @@ import { useState, useRef, useEffect } from "react";
 
 const ALEX_SYSTEM = `Du bist Alex, Catering- und Event-Spezialistin der Beck Maier & Co AG.
 
-PRODUKT-KATEGORIEN:
-- BROTE: Brot, Vollkornbrot, Spessbrot, Feinbrot, Baguette, Ciabatta
-- SANDWICHE & BELEGTE: Sandwiche mit Schinken/Käse/Gemüse, Belegte Brote, Wraps
-- PARTYBROTE: Farcis (Quiche/Fleisch/Gemüse), Hartkäse-Röllchen
-- SNACKS: Salzstangen, Nussgebäck, Käsegebäck, Apérogebäck, Oliven, Nüsse
-- SÜSSES: Gâteaux, Petit Fours, Macarons, Éclair, Tartelettes, Kokosbusserl
-- GETRÄNKE: Kaffee, Tee, Säfte, Mineralwasser, Bier, Wein
-
-ANLÄSSE:
-APÉRO: Salzstangen (10%) + Käsegebäck (15%) + Belegte Brote (25%) + Partybrote (30%) + Petit Fours (15%) + Getränke → CHF 28-35/Person
-GEBURTSTAG: Belegte Brote (30%) + Partygebäck (25%) + Gâteau (25%) + Süsses (15%) + Getränke (5%) → CHF 25-40/Person
-GESCHÄFTSESSEN: Hochwertige Belegte (35%) + Partybrote (35%) + Salat (20%) + Petit Fours (10%) → CHF 35-50/Person
-HOCHZEIT: Komplette Menü-Auswahl + Warme Speisen + Premium-Getränke → CHF 45-70/Person
+PRODUKTE MIT ARTIKELNUMMERN:
+**BROTE:** Vollkornbrot 400g (BRO-001, CHF 4.50) | Weissbrot 400g (BRO-002, CHF 3.50) | Spessbrot 500g (BRO-003, CHF 5.50)
+**BELEGTE BROTE:** Belegte Brötli gemischt (BEL-001, CHF 2.80) | Mini-Sandwiches Schinken (BEL-002, CHF 3.50) | Mini-Sandwiches Lachs (BEL-003, CHF 4.00)
+**APÉRO-GEBÄCK:** Apéro-Gebäck Mix Käse/Salz (APE-001, CHF 18.00/4 Schalen) | Salzstangen 250g (APE-003, CHF 8.50) | Käse-Trauben-Spiessli (APE-002, CHF 2.00/Stck)
+**PETIT FOURS:** Petit Fours & Macarons Mix (PTF-001, CHF 2.00/Stck) | Kokosbusserl (PTF-002, CHF 1.50/Stck)
+**GETRÄNKE:** Mineralwasser 0.5L (GET-001, CHF 1.50) | Apfelsaft 0.5L (GET-002, CHF 2.00) | Bier 0.33L (GET-003, CHF 2.50) | Wein 0.75L (GET-004, CHF 12.00)
 
 WORKFLOW:
 
-PHASE 1 - INFORMATIONEN SAMMELN:
-Stelle diese 5 Fragen (freundlich, nacheinander):
+PHASE 1 - FRAGEN STELLEN:
+Stelle nacheinander:
 1. Wie viele Personen?
-2. Welcher Anlass? (Apéro/Geburtstag/Geschäftsessen/Hochzeit/Sonstiges)
+2. Welcher Anlass?
 3. Welches Datum/Uhrzeit?
-4. Budget/Preisvorstellung pro Person?
-5. Niveau? (Einfach/Standard/Premium)
+4. Budget pro Person (CHF)?
+5. Niveau (Einfach/Standard/Premium)?
 
-PHASE 2 - VARIANTEN ERSTELLEN:
-Erstelle 3 konkrete Varianten mit Tabelle:
+PHASE 2 - VARIANTEN MIT PRODUKTEN:
+Schreibe 3 Varianten mit **echten Produkten und ARTIKELNUMMERN**:
 
-**Variante 1: EINFACH** (CHF 22/Person)
-**Variante 2: STANDARD** (CHF 32/Person)
-**Variante 3: PREMIUM** (CHF 42/Person)
+**Variante 1: EINFACH** (CHF 16/Person = CHF 320 total für 20)
+| Produkt | Art.Nr | Menge | à CHF | Total |
+| Salzstangen 250g | APE-003 | 2 | 8.50 | 17.00 |
+| Apéro-Gebäck Mix | APE-001 | 1 | 18.00 | 18.00 |
+| Belegte Brötli gemischt | BEL-001 | 40 | 2.80 | 112.00 |
+| Petit Fours & Macarons | PTF-001 | 30 | 2.00 | 60.00 |
+| Mineralwasser 0.5L | GET-001 | 10 | 1.50 | 15.00 |
 
-| Produkt | Menge | à CHF | Total |
+PHASE 3 - JSON GENERIEREN (WICHTIG!):
+Wenn Kunde "Variante X" schreibt → SOFORT einen sauberen JSON ausgeben:
 
-Dann sag: "Schreiben Sie 'Variante 1', 'Variante 2' oder 'Variante 3' um die HTML-Offerte zu generieren"
+{
+  "anlass": "Geburtstagsapéro",
+  "anzahlPersonen": 20,
+  "datum": "12. Juni 2025, 17:00 Uhr",
+  "kunde": {
+    "name": "David Meier",
+    "adresse": "[Addresse]",
+    "telefon": "[Telefon]",
+    "email": "[Email]"
+  },
+  "variante": {
+    "name": "Standard",
+    "pricePerPerson": 22,
+    "items": [
+      {"produktname": "Salzstangen 250g", "artikelnummer": "APE-003", "menge": 2, "einzelpreis": 8.50},
+      {"produktname": "Apéro-Gebäck Mix Käse/Salz", "artikelnummer": "APE-001", "menge": 1, "einzelpreis": 18.00},
+      {"produktname": "Belegte Brötli gemischt", "artikelnummer": "BEL-001", "menge": 50, "einzelpreis": 2.80},
+      {"produktname": "Mini-Sandwiches Lachs/Schinken", "artikelnummer": "BEL-003", "menge": 30, "einzelpreis": 4.00},
+      {"produktname": "Petit Fours & Macarons Mix", "artikelnummer": "PTF-001", "menge": 40, "einzelpreis": 2.00},
+      {"produktname": "Mineralwasser 0.5L", "artikelnummer": "GET-001", "menge": 10, "einzelpreis": 1.50}
+    ]
+  },
+  "organizatorisch": {
+    "lieferung": "Selbstabholung",
+    "zeitpunkt": "[Datum], nach Absprache"
+  }
+}
 
-PHASE 3 - HTML-OFFERTE GENERIEREN:
-ABSOLUT WICHTIG:
-- Wenn Kunde "Variante X" schreibt, antworte NUR mit: "Ihre HTML-Offerte wird generiert..."
-- KEINE JSON, KEINE CODE-BLÖCKE, KEINE MARKDOWN im Chat!
-- Der JSON wird im Hintergrund verarbeitet
-- Das System zeigt automatisch den Download-Button
-
-Die Offerte wird als schöne HTML-Datei zum Download angeboten.`;
+REGELN:
+✅ IMMER "produktname" + "artikelnummer" BEIDE im JSON!
+✅ ALLE Preise realistisch
+✅ IMMER Getränke einrechnen (min. 0.25L/Person)
+✅ JSON OHNE Markdown-Backticks, OHNE Text-Erklärungen
+✅ Kundenname/Adresse aus dem Chat übernehmen`;
 
 const LORENA_SYSTEM = `Du bist Lorena, Controlling-Spezialistin. Lade OneDrive-Dateien automatisch. Generiere HTML-Report (KEINE Fragen!)`;
-
 const SABRINA_SYSTEM = `Du bist Sabrina, Filialmanagement-Spezialistin. Lade OneDrive-Dateien automatisch. Generiere HTML-Report (KEINE Fragen!)`;
-
 const MIRJAM_SYSTEM = `Du bist Mirjam, Administration-Spezialistin. Bearbeite Reklamationen und Briefe.`;
-
 const LEON_SYSTEM = `Du bist Leon, zentrale Ansprechsperson. ROUTING: report/controlling → Lorena | filial → Sabrina | catering/event → Alex | reklamation → Mirjam | SONST → du`;
 
 type AgentConfig = {
@@ -69,65 +88,14 @@ type AgentConfig = {
 };
 
 const AGENTS: Record<string, AgentConfig> = {
-  orchestrator: {
-    id: "orchestrator",
-    name: "Leon",
-    role: "Orchestrator",
-    accent: "#D4A574",
-    image: "/leon.png",
-    systemPrompt: LEON_SYSTEM,
-  },
-  catering: {
-    id: "catering",
-    name: "Alex",
-    role: "Catering & Events",
-    accent: "#C4A87C",
-    image: "/Alex.png",
-    systemPrompt: ALEX_SYSTEM,
-    useShopData: true,
-    useOneDrive: true,
-  },
-  controlling: {
-    id: "controlling",
-    name: "Lorena",
-    role: "Controlling",
-    accent: "#8B7355",
-    image: "/lorena.png",
-    systemPrompt: LORENA_SYSTEM,
-    useOneDrive: true,
-    canGenerateReports: true,
-    reportType: "controlling",
-  },
-  filialen: {
-    id: "filialen",
-    name: "Sabrina",
-    role: "Filialmanagement",
-    accent: "#A89968",
-    image: "/sabrina.png",
-    systemPrompt: SABRINA_SYSTEM,
-    useOneDrive: true,
-    canGenerateReports: true,
-    reportType: "filialmanagement",
-  },
-  admin: {
-    id: "admin",
-    name: "Mirjam",
-    role: "Administration",
-    accent: "#B8956A",
-    image: "/mirjam.png",
-    systemPrompt: MIRJAM_SYSTEM,
-    useOneDrive: true,
-  },
+  orchestrator: { id: "orchestrator", name: "Leon", role: "Orchestrator", accent: "#D4A574", image: "/leon.png", systemPrompt: LEON_SYSTEM },
+  catering: { id: "catering", name: "Alex", role: "Catering & Events", accent: "#C4A87C", image: "/Alex.png", systemPrompt: ALEX_SYSTEM, useShopData: true, useOneDrive: true },
+  controlling: { id: "controlling", name: "Lorena", role: "Controlling", accent: "#8B7355", image: "/lorena.png", systemPrompt: LORENA_SYSTEM, useOneDrive: true, canGenerateReports: true, reportType: "controlling" },
+  filialen: { id: "filialen", name: "Sabrina", role: "Filialmanagement", accent: "#A89968", image: "/sabrina.png", systemPrompt: SABRINA_SYSTEM, useOneDrive: true, canGenerateReports: true, reportType: "filialmanagement" },
+  admin: { id: "admin", name: "Mirjam", role: "Administration", accent: "#B8956A", image: "/mirjam.png", systemPrompt: MIRJAM_SYSTEM, useOneDrive: true },
 };
 
-const COLORS = {
-  primary: "#8B6F47",
-  accent: "#D4A574",
-  light: "#F5F1EB",
-  text: "#3D3D3D",
-  border: "#D4C5B9",
-  background: "#FAFAF8",
-};
+const COLORS = { primary: "#8B6F47", accent: "#D4A574", light: "#F5F1EB", text: "#3D3D3D", border: "#D4C5B9", background: "#FAFAF8" };
 
 export default function AgentSystem() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -144,10 +112,7 @@ export default function AgentSystem() {
   const [oneDriveData, setOneDriveData] = useState<Record<string, any>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
-
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages, loading]);
   useEffect(() => {
     if (!isLoggedIn) return;
     (async () => {
@@ -155,9 +120,7 @@ export default function AgentSystem() {
         const res = await fetch("/api/shop");
         const data = await res.json();
         if (data.success) setShopData(data.products);
-      } catch (e) {
-        console.error("Shop error:", e);
-      }
+      } catch (e) { console.error("Shop error:", e); }
     })();
   }, [isLoggedIn]);
 
@@ -165,12 +128,8 @@ export default function AgentSystem() {
     try {
       const res = await fetch(`/api/onedrive?agent=${agentId}`);
       const data = await res.json();
-      if (data.success) {
-        setOneDriveData((prev) => ({ ...prev, [agentId]: data.files }));
-      }
-    } catch (e) {
-      console.error("OneDrive error:", e);
-    }
+      if (data.success) { setOneDriveData((prev) => ({ ...prev, [agentId]: data.files })); }
+    } catch (e) { console.error("OneDrive error:", e); }
   }
 
   function handleLogin(e: React.FormEvent) {
@@ -194,15 +153,10 @@ export default function AgentSystem() {
 
   function routeMessage(text: string, existingAgent: string | null) {
     const t = text.toLowerCase();
-    
-    if (existingAgent && existingAgent !== "orchestrator") {
-      return { agent: existingAgent, grund: null };
-    }
-
+    if (existingAgent && existingAgent !== "orchestrator") { return { agent: existingAgent, grund: null }; }
     if (t.includes("catering") || t.includes("event") || t.includes("hochzeit") || t.includes("geburtstag") || t.includes("apéro") || t.includes("party")) {
       return { agent: "catering", grund: "Alex erstellt Offerte" };
     }
-    
     if (t.includes("report") || t.includes("controlling") || t.includes("analyse")) {
       return { agent: "controlling", grund: "Lorena generiert Report" };
     }
@@ -212,25 +166,19 @@ export default function AgentSystem() {
     if (t.includes("reklamation") || t.includes("brief")) {
       return { agent: "admin", grund: "Mirjam bearbeitet Anfrage" };
     }
-    
     return { agent: "orchestrator", grund: null };
   }
 
   async function callClaude(systemPrompt: string, history: any[], agentId: string) {
     let enhancedPrompt = systemPrompt;
     const agent = AGENTS[agentId];
-
     if (agent?.useOneDrive && oneDriveData[agentId]?.length > 0) {
       enhancedPrompt += `\n\nONEDRIVE DATEN:\n`;
-      oneDriveData[agentId].forEach((file: any) => {
-        enhancedPrompt += `[${file.name}]: ${file.content}\n`;
-      });
+      oneDriveData[agentId].forEach((file: any) => { enhancedPrompt += `[${file.name}]: ${file.content}\n`; });
     }
-
     if (agent?.useShopData && shopData.length > 0) {
       enhancedPrompt += `\n\nSHOP-PRODUKTE:\n${JSON.stringify(shopData.slice(0, 15), null, 2)}`;
     }
-
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -248,18 +196,11 @@ export default function AgentSystem() {
       const res = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pdfContent,
-          reportType: agent.reportType,
-          agentName: agent.name,
-        }),
+        body: JSON.stringify({ pdfContent, reportType: agent.reportType, agentName: agent.name }),
       });
       const data = await res.json();
       return data;
-    } catch (e) {
-      console.error("Report error:", e);
-      return null;
-    }
+    } catch (e) { console.error("Report error:", e); return null; }
   }
 
   async function generateCateringOffer(offerData: any) {
@@ -271,10 +212,7 @@ export default function AgentSystem() {
       });
       const data = await res.json();
       return data;
-    } catch (e) {
-      console.error("Offer error:", e);
-      return null;
-    }
+    } catch (e) { console.error("Offer error:", e); return null; }
   }
 
   async function handleSend() {
@@ -289,16 +227,12 @@ export default function AgentSystem() {
     try {
       const routing = routeMessage(userText, currentChatAgent);
       const selectedAgent = routing.agent;
-      
       setActiveAgent(selectedAgent);
       if (routing.grund) setRoutingInfo(routing.grund);
       setCurrentChatAgent(selectedAgent);
 
       const agent = AGENTS[selectedAgent];
-
-      if (agent?.useOneDrive && !oneDriveData[selectedAgent]) {
-        await loadOneDriveData(selectedAgent);
-      }
+      if (agent?.useOneDrive && !oneDriveData[selectedAgent]) { await loadOneDriveData(selectedAgent); }
 
       const answer = await callClaude(agent.systemPrompt, updatedHistory, selectedAgent);
       setConversationHistory([...updatedHistory, { role: "assistant", content: answer }]);
@@ -306,16 +240,20 @@ export default function AgentSystem() {
       let reportData = null;
       let offerData = null;
 
-      if (selectedAgent === "catering" && answer.includes("{")) {
+      // CATERING: Versuche JSON zu extrahieren und filtern nach artikelnummer
+      if (selectedAgent === "catering") {
         try {
-          const jsonMatch = answer.match(/\{[\s\S]*\}/);
+          const jsonMatch = answer.match(/\{[\s\S]*?\n\}/);
           if (jsonMatch) {
-            const offerDataObj = JSON.parse(jsonMatch[0]);
-            offerData = await generateCateringOffer(offerDataObj);
+            const jsonStr = jsonMatch[0];
+            const offerDataObj = JSON.parse(jsonStr);
+            
+            // Check ob items artikelnummer haben
+            if (offerDataObj.variante?.items?.some((i: any) => i.artikelnummer)) {
+              offerData = await generateCateringOffer(offerDataObj);
+            }
           }
-        } catch (e) {
-          console.error("JSON parse error:", e);
-        }
+        } catch (e) { console.error("JSON parse error:", e); }
       }
 
       if (agent?.canGenerateReports && oneDriveData[selectedAgent]?.length > 0) {
@@ -384,10 +322,7 @@ export default function AgentSystem() {
       <div style={{ padding: "12px 16px", borderBottom: `3px solid ${COLORS.accent}`, background: "white", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
           <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 40, objectFit: "contain", flexShrink: 0 }} />
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: "700", fontSize: "14px", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Beck Maier</div>
-            <div style={{ fontSize: "10px", color: COLORS.accent }}>Gut, Gesund, Genial</div>
-          </div>
+          <div style={{ minWidth: 0 }}><div style={{ fontWeight: "700", fontSize: "14px", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Beck Maier</div><div style={{ fontSize: "10px", color: COLORS.accent }}>Gut, Gesund, Genial</div></div>
         </div>
         <button onClick={handleLogout} style={{ background: "white", border: `2px solid ${COLORS.border}`, borderRadius: "6px", color: COLORS.primary, padding: "6px 10px", fontSize: "11px", cursor: "pointer", fontWeight: "600", flexShrink: 0 }}>Abmelden</button>
       </div>
@@ -396,9 +331,7 @@ export default function AgentSystem() {
         {Object.values(AGENTS).filter((a) => a.id !== "orchestrator").map((a) => (
           <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 10px", borderRadius: "6px", border: `1.5px solid ${a.accent}`, background: "#F5F1EB", whiteSpace: "nowrap", flexShrink: 0 }}>
             <img src={a.image} alt={a.name} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: "700", fontSize: "11px", color: "#3D3D3D" }}>{a.name}</div>
-            </div>
+            <div style={{ minWidth: 0 }}><div style={{ fontWeight: "700", fontSize: "11px", color: "#3D3D3D" }}>{a.name}</div></div>
           </div>
         ))}
       </div>
@@ -442,10 +375,7 @@ export default function AgentSystem() {
               )}
               <div style={{ background: COLORS.light, border: `2px solid ${COLORS.border}`, borderLeft: `4px solid ${ag?.accent || COLORS.primary}`, borderRadius: "4px 16px 16px 16px", padding: "10px 12px", color: COLORS.text, fontSize: "13px", lineHeight: "1.6" }}>
                 {msg.text.split("\n").map((line: string, j: number) => (
-                  <span key={j}>
-                    {line}
-                    {j < msg.text.split("\n").length - 1 && <br />}
-                  </span>
+                  <span key={j}>{line}{j < msg.text.split("\n").length - 1 && <br />}</span>
                 ))}
               </div>
               {msg.reportData && (
@@ -466,10 +396,7 @@ export default function AgentSystem() {
           <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxWidth: "95%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <img src={AGENTS[activeAgent || "orchestrator"].image} alt="Agent" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: `2px solid ${AGENTS[activeAgent || "orchestrator"].accent}`, flexShrink: 0 }} />
-              <div>
-                <span style={{ fontWeight: "700", fontSize: "13px", color: AGENTS[activeAgent || "orchestrator"].accent }}>{AGENTS[activeAgent || "orchestrator"].name}</span>
-                {routingInfo && <div style={{ fontSize: "10px", color: "#888", marginTop: "1px" }}>{routingInfo}</div>}
-              </div>
+              <div><span style={{ fontWeight: "700", fontSize: "13px", color: AGENTS[activeAgent || "orchestrator"].accent }}>{AGENTS[activeAgent || "orchestrator"].name}</span>{routingInfo && <div style={{ fontSize: "10px", color: "#888", marginTop: "1px" }}>{routingInfo}</div>}</div>
             </div>
             <div style={{ background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "16px", padding: "10px 12px", display: "flex", gap: "4px" }}>
               {[0, 1, 2].map((i) => (
