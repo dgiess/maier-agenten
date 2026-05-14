@@ -1,0 +1,24 @@
+{
+  "name": "maier-agenten",
+  "version": "1.0.0",
+  "description": "KI-Agentensystem für Rolf Maier & Co AG",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "^14.0.0",
+    "@anthropic-ai/sdk": "^0.24.0",
+    "@microsoft/microsoft-graph-client": "^3.0.0",
+    "isomorphic-fetch": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "typescript": "^5"
+  }
+}
