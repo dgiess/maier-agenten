@@ -363,15 +363,15 @@ export default function AgentSystem() {
 
   if (!isLoggedIn) {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100vh", background: COLORS.background, fontFamily: "Georgia, serif" }}>
-        <div style={{ background: "white", padding: "40px 60px", borderRadius: "16px", border: `3px solid ${COLORS.accent}`, textAlign: "center", maxWidth: "400px" }}>
-          <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 80, objectFit: "contain", marginBottom: "20px" }} />
-          <div style={{ fontSize: "24px", fontWeight: "700", color: COLORS.primary, marginBottom: "4px" }}>Beck Maier & Co AG</div>
-          <div style={{ fontSize: "14px", color: COLORS.text, marginBottom: "30px", opacity: 0.8 }}>KI-Agentensystem</div>
-          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            <label style={{ fontSize: "14px", color: COLORS.text, fontWeight: "600", textAlign: "left" }}>Passwort:</label>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: COLORS.background, fontFamily: "Georgia, serif", padding: "16px" }}>
+        <div style={{ background: "white", padding: "32px 24px", borderRadius: "16px", border: `3px solid ${COLORS.accent}`, textAlign: "center", maxWidth: "100%", width: "100%", maxWidth: "400px" }}>
+          <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 60, objectFit: "contain", marginBottom: "16px" }} />
+          <div style={{ fontSize: "20px", fontWeight: "700", color: COLORS.primary, marginBottom: "4px" }}>Beck Maier & Co AG</div>
+          <div style={{ fontSize: "12px", color: COLORS.text, marginBottom: "24px", opacity: 0.8 }}>KI-Agentensystem</div>
+          <form onSubmit={handleLogin} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <label style={{ fontSize: "13px", color: COLORS.text, fontWeight: "600", textAlign: "left" }}>Passwort:</label>
             <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="Passwort" style={{ padding: "12px 14px", border: `2px solid ${COLORS.border}`, borderRadius: "8px", fontSize: "16px", fontFamily: "Georgia, serif", color: COLORS.text, background: COLORS.light }} autoFocus />
-            {loginError && <div style={{ color: "#c62828", fontSize: "13px", fontWeight: "600" }}>{loginError}</div>}
+            {loginError && <div style={{ color: "#c62828", fontSize: "12px", fontWeight: "600" }}>{loginError}</div>}
             <button type="submit" style={{ padding: "12px 24px", background: COLORS.primary, color: "white", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "700", cursor: "pointer" }}>Anmelden</button>
           </form>
         </div>
@@ -381,42 +381,46 @@ export default function AgentSystem() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: COLORS.background, color: COLORS.text, fontFamily: "Georgia, serif" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 28px", borderBottom: `3px solid ${COLORS.accent}`, background: "white", gap: "20px", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-          <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 50, objectFit: "contain" }} />
-          <div>
-            <div style={{ fontWeight: "700", fontSize: "20px", color: COLORS.primary }}>Beck Maier & Co AG</div>
-            <div style={{ fontSize: "12px", color: COLORS.accent }}>Gut, Gesund, Genial</div>
+      {/* HEADER */}
+      <div style={{ padding: "12px 16px", borderBottom: `3px solid ${COLORS.accent}`, background: "white", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
+          <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 40, objectFit: "contain", flexShrink: 0 }} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontWeight: "700", fontSize: "14px", color: COLORS.primary, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Beck Maier</div>
+            <div style={{ fontSize: "10px", color: COLORS.accent }}>Gut, Gesund, Genial</div>
           </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
-          {Object.values(AGENTS).filter((a) => a.id !== "orchestrator").map((a) => (
-            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "10px", padding: "8px 12px", borderRadius: "8px", border: `2px solid ${a.accent}`, background: "#F5F1EB" }}>
-              <img src={a.image} alt={a.name} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }} />
-              <div>
-                <div style={{ fontWeight: "700", fontSize: "12px", color: "#3D3D3D" }}>{a.name}</div>
-                <div style={{ fontSize: "9px", color: a.accent }}>{a.role}</div>
-              </div>
-            </div>
-          ))}
-          <button onClick={handleLogout} style={{ background: "white", border: `2px solid ${COLORS.border}`, borderRadius: "8px", color: COLORS.primary, padding: "8px 14px", fontSize: "12px", cursor: "pointer", fontWeight: "600" }}>Abmelden</button>
-        </div>
+        <button onClick={handleLogout} style={{ background: "white", border: `2px solid ${COLORS.border}`, borderRadius: "6px", color: COLORS.primary, padding: "6px 10px", fontSize: "11px", cursor: "pointer", fontWeight: "600", flexShrink: 0 }}>Abmelden</button>
       </div>
 
+      {/* AGENT PILLS - Mobile Scroll */}
+      <div style={{ padding: "8px 12px", borderBottom: `1px solid ${COLORS.border}`, background: "white", overflowX: "auto", display: "flex", gap: "8px", WebkitOverflowScrolling: "touch" }}>
+        {Object.values(AGENTS).filter((a) => a.id !== "orchestrator").map((a) => (
+          <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 10px", borderRadius: "6px", border: `1.5px solid ${a.accent}`, background: "#F5F1EB", whiteSpace: "nowrap", flexShrink: 0 }}>
+            <img src={a.image} alt={a.name} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontWeight: "700", fontSize: "11px", color: "#3D3D3D" }}>{a.name}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* MEMORY BAR */}
       {conversationHistory.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 28px", background: COLORS.light, borderBottom: `1px solid ${COLORS.border}` }}>
-          <span style={{ width: "8px", height: "8px", background: COLORS.accent, borderRadius: "50%" }} />
-          <span style={{ color: COLORS.text, opacity: 0.7, fontSize: "13px" }}>{Math.floor(conversationHistory.length / 2)} Nachrichten</span>
-          <button onClick={handleClear} style={{ background: "white", border: `1px solid ${COLORS.border}`, borderRadius: "6px", color: COLORS.primary, padding: "4px 12px", fontSize: "12px", cursor: "pointer", fontWeight: "600", marginLeft: "auto" }}>Neu starten</button>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px", background: COLORS.light, borderBottom: `1px solid ${COLORS.border}`, fontSize: "12px" }}>
+          <span style={{ width: "6px", height: "6px", background: COLORS.accent, borderRadius: "50%", flexShrink: 0 }} />
+          <span style={{ color: COLORS.text, opacity: 0.7, flex: 1, minWidth: 0 }}>{Math.floor(conversationHistory.length / 2)} Nachrichten</span>
+          <button onClick={handleClear} style={{ background: "white", border: `1px solid ${COLORS.border}`, borderRadius: "6px", color: COLORS.primary, padding: "3px 10px", fontSize: "11px", cursor: "pointer", fontWeight: "600", flexShrink: 0 }}>Neu</button>
         </div>
       )}
 
-      <div style={{ flex: 1, overflowY: "auto", padding: "32px", display: "flex", flexDirection: "column", gap: "24px" }}>
+      {/* MESSAGES */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "16px 12px", display: "flex", flexDirection: "column", gap: "12px", WebkitOverflowScrolling: "touch" }}>
         {messages.length === 0 && (
-          <div style={{ margin: "auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
-            <img src="/leon.png" alt="Leon" style={{ width: 100, height: 100, borderRadius: "50%", objectFit: "cover", border: "4px solid #D4A574" }} />
-            <div style={{ fontSize: "24px", fontWeight: "700", color: COLORS.primary }}>Willkommen</div>
-            <div style={{ color: COLORS.text, opacity: 0.7, fontSize: "14px" }}>Controlling Report, Filialanalyse, Catering-Offerte, Reklamation</div>
+          <div style={{ margin: "auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+            <img src="/leon.png" alt="Leon" style={{ width: 80, height: 80, borderRadius: "50%", objectFit: "cover", border: "3px solid #D4A574" }} />
+            <div style={{ fontSize: "18px", fontWeight: "700", color: COLORS.primary }}>Willkommen</div>
+            <div style={{ color: COLORS.text, opacity: 0.7, fontSize: "12px", lineHeight: "1.6" }}>Controlling, Filialanalyse, Catering-Offerte, Reklamation</div>
           </div>
         )}
 
@@ -424,23 +428,23 @@ export default function AgentSystem() {
           if (msg.role === "user") {
             return (
               <div key={i} style={{ display: "flex", justifyContent: "flex-end" }}>
-                <div style={{ maxWidth: "70%", background: COLORS.primary, borderRadius: "16px 16px 4px 16px", padding: "12px 16px", color: "white", fontSize: "14px" }}>{msg.text}</div>
+                <div style={{ maxWidth: "85%", background: COLORS.primary, borderRadius: "16px 16px 4px 16px", padding: "10px 12px", color: "white", fontSize: "13px", lineHeight: "1.5" }}>{msg.text}</div>
               </div>
             );
           }
           const ag = AGENTS[msg.agent];
           return (
-            <div key={i} style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "80%" }}>
+            <div key={i} style={{ display: "flex", flexDirection: "column", gap: "6px", maxWidth: "95%" }}>
               {ag && (
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <img src={ag.image} alt={ag.name} style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2px solid ${ag.accent}` }} />
-                  <div>
-                    <span style={{ fontWeight: "700", fontSize: "14px", color: ag.accent }}>{ag.name}</span>
-                    {msg.grund && <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>{msg.grund}</div>}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <img src={ag.image} alt={ag.name} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: `2px solid ${ag.accent}`, flexShrink: 0 }} />
+                  <div style={{ minWidth: 0 }}>
+                    <span style={{ fontWeight: "700", fontSize: "13px", color: ag.accent }}>{ag.name}</span>
+                    {msg.grund && <div style={{ fontSize: "10px", color: "#888", marginTop: "1px" }}>{msg.grund}</div>}
                   </div>
                 </div>
               )}
-              <div style={{ background: COLORS.light, border: `2px solid ${COLORS.border}`, borderLeft: `4px solid ${ag?.accent || COLORS.primary}`, borderRadius: "4px 16px 16px 16px", padding: "12px 16px", color: COLORS.text, fontSize: "14px", lineHeight: "1.7" }}>
+              <div style={{ background: COLORS.light, border: `2px solid ${COLORS.border}`, borderLeft: `4px solid ${ag?.accent || COLORS.primary}`, borderRadius: "4px 16px 16px 16px", padding: "10px 12px", color: COLORS.text, fontSize: "13px", lineHeight: "1.6" }}>
                 {msg.text.split("\n").map((line: string, j: number) => (
                   <span key={j}>
                     {line}
@@ -449,12 +453,12 @@ export default function AgentSystem() {
                 ))}
               </div>
               {msg.reportData && (
-                <button onClick={() => handleDownload(msg.reportData)} style={{ marginTop: "10px", padding: "8px 14px", background: ag?.accent, color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", alignSelf: "flex-start" }}>
+                <button onClick={() => handleDownload(msg.reportData)} style={{ marginTop: "6px", padding: "8px 12px", background: ag?.accent, color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", alignSelf: "flex-start" }}>
                   📥 {msg.reportData.filename}
                 </button>
               )}
               {msg.offerData && (
-                <button onClick={() => handleDownload(msg.offerData)} style={{ marginTop: "10px", padding: "8px 14px", background: ag?.accent, color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", alignSelf: "flex-start" }}>
+                <button onClick={() => handleDownload(msg.offerData)} style={{ marginTop: "6px", padding: "8px 12px", background: ag?.accent, color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", alignSelf: "flex-start" }}>
                   📥 {msg.offerData.filename}
                 </button>
               )}
@@ -463,17 +467,17 @@ export default function AgentSystem() {
         })}
 
         {loading && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "80%" }}>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <img src={AGENTS[activeAgent || "orchestrator"].image} alt="Agent" style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: `2px solid ${AGENTS[activeAgent || "orchestrator"].accent}` }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxWidth: "95%" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+              <img src={AGENTS[activeAgent || "orchestrator"].image} alt="Agent" style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover", border: `2px solid ${AGENTS[activeAgent || "orchestrator"].accent}`, flexShrink: 0 }} />
               <div>
-                <span style={{ fontWeight: "700", fontSize: "14px", color: AGENTS[activeAgent || "orchestrator"].accent }}>{AGENTS[activeAgent || "orchestrator"].name}</span>
-                {routingInfo && <div style={{ fontSize: "11px", color: "#888", marginTop: "2px" }}>{routingInfo}</div>}
+                <span style={{ fontWeight: "700", fontSize: "13px", color: AGENTS[activeAgent || "orchestrator"].accent }}>{AGENTS[activeAgent || "orchestrator"].name}</span>
+                {routingInfo && <div style={{ fontSize: "10px", color: "#888", marginTop: "1px" }}>{routingInfo}</div>}
               </div>
             </div>
-            <div style={{ background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "16px", padding: "12px 16px", display: "flex", gap: "6px" }}>
+            <div style={{ background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "16px", padding: "10px 12px", display: "flex", gap: "4px" }}>
               {[0, 1, 2].map((i) => (
-                <span key={i} style={{ width: "6px", height: "6px", background: COLORS.accent, borderRadius: "50%", animation: `blink 1.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s` }} />
+                <span key={i} style={{ width: "5px", height: "5px", background: COLORS.accent, borderRadius: "50%", animation: `blink 1.2s ease-in-out infinite`, animationDelay: `${i * 0.2}s`, flexShrink: 0 }} />
               ))}
             </div>
           </div>
@@ -482,9 +486,10 @@ export default function AgentSystem() {
         <div ref={bottomRef} />
       </div>
 
-      <div style={{ padding: "18px 28px", borderTop: `3px solid ${COLORS.accent}`, background: "white", display: "flex", gap: "14px", alignItems: "flex-end" }}>
-        <textarea style={{ flex: 1, background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "12px", padding: "12px 16px", color: COLORS.text, fontSize: "14px", fontFamily: "Georgia, serif", maxHeight: "120px" }} placeholder="z.B. 'Catering für 30 Personen' oder 'Apéro'" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={2} />
-        <button style={{ width: "44px", height: "44px", background: COLORS.primary, color: "white", border: "none", borderRadius: "8px", fontSize: "18px", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", opacity: loading || !input.trim() ? 0.5 : 1 }} onClick={handleSend} disabled={loading || !input.trim()}>↑</button>
+      {/* INPUT */}
+      <div style={{ padding: "12px", borderTop: `3px solid ${COLORS.accent}`, background: "white", display: "flex", gap: "8px", alignItems: "flex-end" }}>
+        <textarea style={{ flex: 1, background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "8px", padding: "10px 12px", color: COLORS.text, fontSize: "14px", fontFamily: "Georgia, serif", maxHeight: "100px", minHeight: "40px", resize: "none" }} placeholder="Nachricht..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={1} />
+        <button style={{ width: "40px", height: "40px", background: COLORS.primary, color: "white", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", opacity: loading || !input.trim() ? 0.5 : 1, flexShrink: 0 }} onClick={handleSend} disabled={loading || !input.trim()}>↑</button>
       </div>
 
       <style>{`@keyframes blink { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }`}</style>
