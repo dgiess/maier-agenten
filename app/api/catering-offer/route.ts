@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       html,
-      filename: `Catering-Offerte-${offerData.anlass}-${new Date().toISOString().split("T")[0]}.html`,
+      filename: `Catering-Offerte-${offerData.anlass || "Event"}-${new Date().toISOString().split("T")[0]}.html`,
     });
   } catch (error: any) {
     return NextResponse.json(
@@ -31,13 +31,33 @@ function generateCateringOffer(data: any): string {
     anlass = "Catering-Veranstaltung",
     anzahlPersonen = 20,
     datum = new Date().toLocaleDateString("de-CH"),
-    varianten = [],
-    organisatorisch = {},
-    agentName = "Alex",
+    kunde = {},
+    variante = {},
+    organizatorisch = {},
   } = data;
 
   const totalPersonen = parseInt(anzahlPersonen) || 20;
   const timestamp = new Date().toLocaleString("de-CH");
+  const pricePerPerson = parseFloat(variante.pricePerPerson) || 25;
+  const totalPrice = pricePerPerson * totalPersonen;
+
+  // Generiere Produkttabelle aus Items
+  const productRows = (variante.items || [])
+    .map((item: any) => {
+      const itemTotal = (parseFloat(item.einzelpreis || item.price) || 0) * (parseInt(item.menge || item.quantity) || 1);
+      return `
+        <tr>
+          <td style="padding: 12px; border-bottom: 1px solid #ddd;">
+            <strong>${item.produktname || item.name || "Produkt"}</strong><br/>
+            <small style="color: #666;">${item.artikelnummer ? `Art.Nr: ${item.artikelnummer}` : ""}</small>
+          </td>
+          <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: center;">${item.menge || item.quantity || 1}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;">CHF ${(parseFloat(item.einzelpreis || item.price) || 0).toFixed(2)}</td>
+          <td style="padding: 12px; border-bottom: 1px solid #ddd; text-align: right;"><strong>CHF ${itemTotal.toFixed(2)}</strong></td>
+        </tr>
+      `;
+    })
+    .join("");
 
   return `<!DOCTYPE html>
 <html lang="de">
@@ -56,423 +76,308 @@ function generateCateringOffer(data: any): string {
     --text: #2C1F14;
     --text3: #9A8470;
     --green: #4A7C59;
-    --white: #FFFFFF;
   }
   
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { 
-    font-family: 'Lato', -apple-system, sans-serif; 
-    background: var(--cream); 
-    color: var(--text); 
+  
+  body {
+    font-family: 'Georgia', serif;
+    background: white;
+    color: var(--text);
     line-height: 1.6;
+    padding: 40px;
+    max-width: 900px;
+    margin: 0 auto;
   }
   
   .header {
-    background: white;
-    border-bottom: 4px solid var(--gold);
-    padding: 40px;
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
+    border-bottom: 3px solid var(--gold);
+    padding-bottom: 30px;
+    margin-bottom: 40px;
   }
   
-  .logo-area { display: flex; align-items: center; gap: 16px; }
-  .logo-icon {
-    width: 48px;
-    height: 48px;
-    background: var(--brown);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--cream);
-    font-size: 24px;
-    font-weight: 700;
-  }
-  
-  .logo-text h1 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 24px;
+  .logo {
+    font-family: 'Georgia', serif;
+    font-size: 28px;
     font-weight: 700;
     color: var(--brown);
-    line-height: 1;
+    margin-bottom: 4px;
   }
   
-  .logo-text p {
-    font-size: 11px;
+  .tagline {
+    font-size: 12px;
     color: var(--gold);
     letter-spacing: 0.1em;
     text-transform: uppercase;
-    margin-top: 4px;
   }
   
-  .header-meta {
-    text-align: right;
+  .offerte-info {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-top: 30px;
+    font-size: 13px;
   }
   
-  .header-meta .date {
-    font-size: 12px;
-    color: var(--text3);
+  .info-item {
+    background: var(--cream);
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 3px solid var(--gold);
   }
   
-  .header-meta .tag {
-    background: var(--brown);
-    color: white;
-    padding: 4px 12px;
-    border-radius: 20px;
+  .info-label {
     font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    margin-top: 8px;
-    display: inline-block;
+    color: var(--text3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 6px;
   }
   
-  .gold-line { height: 2px; background: var(--gold); margin: 0; }
+  .info-value {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--brown);
+  }
   
-  .main { max-width: 1000px; margin: 0 auto; padding: 40px; }
-  
-  .title {
-    font-family: 'Playfair Display', Georgia, serif;
+  h1 {
+    font-family: 'Georgia', serif;
     font-size: 32px;
     font-weight: 700;
     color: var(--brown);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
   }
   
-  .subtitle {
-    font-size: 13px;
-    color: var(--text3);
-    margin-bottom: 30px;
-  }
-  
-  .intro {
-    background: white;
-    border-left: 4px solid var(--gold);
-    padding: 20px;
-    margin-bottom: 30px;
-    border-radius: 4px;
-    font-size: 14px;
-    color: var(--text);
-    line-height: 1.8;
-  }
-  
-  .kpi-strip {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 12px;
-    margin-bottom: 30px;
-  }
-  
-  .kpi {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 16px;
-    text-align: center;
-    border-top: 3px solid var(--gold);
-  }
-  
-  .kpi-label {
-    font-size: 10px;
-    color: var(--text3);
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    margin-bottom: 8px;
-    font-weight: 700;
-  }
-  
-  .kpi-value {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 22px;
-    font-weight: 700;
-    color: var(--brown);
-  }
-  
-  .section-title {
-    font-family: 'Playfair Display', Georgia, serif;
+  h2 {
+    font-family: 'Georgia', serif;
     font-size: 18px;
     font-weight: 600;
     color: var(--brown);
-    margin: 30px 0 16px;
-    padding-bottom: 12px;
+    margin: 30px 0 20px;
+    padding-bottom: 10px;
     border-bottom: 2px solid var(--border);
   }
   
-  .variant-card {
-    background: white;
-    border: 1px solid var(--border);
+  .variante-header {
+    background: var(--cream2);
+    padding: 20px;
     border-radius: 8px;
-    padding: 24px;
     margin-bottom: 20px;
-    page-break-inside: avoid;
-  }
-  
-  .variant-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
   }
   
-  .variant-name {
-    font-family: 'Playfair Display', Georgia, serif;
+  .variante-title {
     font-size: 16px;
-    font-weight: 600;
+    font-weight: 700;
     color: var(--brown);
   }
   
-  .variant-price {
-    font-size: 20px;
+  .variante-price {
+    font-size: 24px;
     font-weight: 700;
     color: var(--gold);
     text-align: right;
   }
   
-  .variant-price-sub {
-    font-size: 11px;
+  .variante-price-sub {
+    font-size: 12px;
     color: var(--text3);
   }
   
   table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 13px;
-    margin-bottom: 16px;
+    margin-bottom: 30px;
+    background: white;
   }
   
   thead th {
-    background: var(--cream2);
-    padding: 10px;
+    background: var(--brown);
+    color: white;
+    padding: 12px;
     text-align: left;
+    font-size: 12px;
     font-weight: 700;
-    border-bottom: 2px solid var(--border);
-    font-size: 11px;
-    color: var(--text3);
+    text-transform: uppercase;
     letter-spacing: 0.05em;
   }
   
-  tbody td {
-    padding: 10px;
-    border-bottom: 1px solid #EDE7DB;
-  }
-  
-  tbody tr:last-child { background: var(--cream2); font-weight: 700; }
-  
-  .text-right { text-align: right; }
-  
-  .info-box {
-    background: var(--cream);
-    border-left: 3px solid var(--gold);
-    padding: 14px;
-    margin-top: 16px;
-    border-radius: 4px;
-    font-size: 12px;
-    color: var(--text);
-  }
-  
-  .org-box {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  
-  .org-item {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 10px;
-  }
-  
-  .org-item:last-child { margin-bottom: 0; }
-  
-  .org-label {
+  .total-row {
+    background: var(--cream2);
     font-weight: 700;
-    min-width: 100px;
-    color: var(--text3);
+    font-size: 14px;
   }
   
-  .org-value { color: var(--text); }
+  .total-row td {
+    padding: 15px 12px;
+    border-top: 2px solid var(--gold);
+    border-bottom: 2px solid var(--gold);
+  }
   
-  .next-steps {
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
+  .kunde-box {
+    background: var(--cream);
     padding: 20px;
-    margin-top: 30px;
+    border-radius: 8px;
+    border-left: 3px solid var(--gold);
+    margin-bottom: 30px;
   }
   
-  .next-steps h3 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 16px;
-    font-weight: 600;
+  .kunde-box h3 {
+    font-size: 14px;
+    font-weight: 700;
     color: var(--brown);
     margin-bottom: 12px;
   }
   
-  .footer {
-    background: var(--brown);
-    color: var(--cream);
-    padding: 30px 40px;
-    text-align: center;
-    margin-top: 40px;
+  .kunde-info {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.8;
   }
   
-  .footer h2 {
-    font-family: 'Playfair Display', Georgia, serif;
-    font-size: 20px;
-    margin-bottom: 4px;
+  .notes {
+    background: var(--cream);
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 3px solid var(--gold);
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.8;
+    margin-bottom: 30px;
+  }
+  
+  .footer {
+    background: var(--brown);
+    color: white;
+    padding: 30px;
+    text-align: center;
+    margin-top: 40px;
+    border-radius: 8px;
+  }
+  
+  .footer h3 {
+    font-family: 'Georgia', serif;
+    font-size: 18px;
+    margin-bottom: 8px;
   }
   
   .footer p {
     font-size: 12px;
     opacity: 0.9;
-    margin: 2px 0;
+    margin: 4px 0;
   }
   
-  .footer .contact {
-    margin-top: 15px;
-    font-size: 11px;
-    opacity: 0.8;
+  .validity {
+    background: var(--cream);
+    padding: 15px;
+    border-radius: 6px;
+    border-left: 3px solid var(--gold);
+    margin-bottom: 30px;
+    font-size: 13px;
   }
   
   @media print {
-    body { background: white; }
-    .header { page-break-after: avoid; }
-  }
-  
-  @media(max-width:800px) {
-    .header { flex-direction: column; }
-    .header-meta { text-align: left; margin-top: 16px; }
-    .kpi-strip { grid-template-columns: repeat(2, 1fr); }
+    body { padding: 20px; }
   }
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="logo-area">
-    <div class="logo-icon">🍞</div>
-    <div class="logo-text">
-      <h1>Beck Maier</h1>
-      <p>Bäckerei · Konditorei · Confiserie</p>
-    </div>
+  <div class="logo">🥐 Beck Maier & Co AG</div>
+  <div class="tagline">Bäckerei · Konditorei · Catering</div>
+</div>
+
+<h1>Catering-Offerte</h1>
+
+<div class="offerte-info">
+  <div class="info-item">
+    <div class="info-label">Anlass</div>
+    <div class="info-value">${anlass}</div>
   </div>
-  <div class="header-meta">
-    <div class="date">Offerte vom ${timestamp.split(",")[0]}</div>
-    <div class="tag">Gültig 30 Tage</div>
+  <div class="info-item">
+    <div class="info-label">Personen</div>
+    <div class="info-value">${totalPersonen}</div>
+  </div>
+  <div class="info-item">
+    <div class="info-label">Datum</div>
+    <div class="info-value">${datum}</div>
+  </div>
+  <div class="info-item">
+    <div class="info-label">Gültig</div>
+    <div class="info-value">30 Tage</div>
   </div>
 </div>
 
-<div class="gold-line"></div>
-
-<div class="main">
-
-  <h1 class="title">Catering-Offerte</h1>
-  <div class="subtitle">${anlass} • ${totalPersonen} Personen • ${datum}</div>
-
-  <div class="intro">
-    <strong>Herzlichen Dank für Ihre Anfrage!</strong> Wir freuen uns, Sie mit unseren frischen Produkten und professionellem Service begeistern zu dürfen. Diese Offerte zeigt unsere Top-Varianten für Ihren Anlass. Gerne passen wir das Angebot nach Ihren Wünschen an.
+${kunde.name ? `
+<div class="kunde-box">
+  <h3>👤 Kundenangaben</h3>
+  <div class="kunde-info">
+    ${kunde.name ? `<strong>${kunde.name}</strong><br/>` : ""}
+    ${kunde.adresse ? `${kunde.adresse}<br/>` : ""}
+    ${kunde.telefon ? `📞 ${kunde.telefon}<br/>` : ""}
+    ${kunde.email ? `📧 ${kunde.email}` : ""}
   </div>
+</div>
+` : ""}
 
-  <div class="kpi-strip">
-    <div class="kpi">
-      <div class="kpi-label">Personen</div>
-      <div class="kpi-value">${totalPersonen}</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Anlass</div>
-      <div class="kpi-value" style="font-size: 16px;">${anlass}</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Datum</div>
-      <div class="kpi-value" style="font-size: 14px;">${datum}</div>
-    </div>
-    <div class="kpi">
-      <div class="kpi-label">Gültig</div>
-      <div class="kpi-value" style="font-size: 16px;">30 Tage</div>
-    </div>
+<h2>📦 Menü-Zusammenstellung</h2>
+
+<div class="variante-header">
+  <div>
+    <div class="variante-title">${variante.name || "Variante"}</div>
   </div>
-
-  <h2 class="section-title">📦 Unsere Varianten</h2>
-
-  ${varianten.map((v: any, idx: number) => `
-    <div class="variant-card">
-      <div class="variant-header">
-        <div>
-          <div class="variant-name">Variante ${idx + 1}: ${v.name || "Standard"}</div>
-        </div>
-        <div class="variant-price">
-          CHF ${(parseFloat(v.pricePerPerson || 0) * totalPersonen).toFixed(2)}
-          <div class="variant-price-sub">à CHF ${parseFloat(v.pricePerPerson || 0).toFixed(2)}/Person</div>
-        </div>
-      </div>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Produkt</th>
-            <th class="text-right">Menge</th>
-            <th class="text-right">à CHF</th>
-            <th class="text-right">Total</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${v.items?.map((item: any) => `
-            <tr>
-              <td>${item.name || "Produkt"}</td>
-              <td class="text-right">${item.quantity || 1}</td>
-              <td class="text-right">CHF ${parseFloat(item.price || 0).toFixed(2)}</td>
-              <td class="text-right">CHF ${(parseFloat(item.price || 0) * (item.quantity || 1)).toFixed(2)}</td>
-            </tr>
-          `).join("") || `<tr><td colspan="4" style="text-align: center; color: var(--text3);">Produkte werden nach Absprache zusammengestellt</td></tr>`}
-          <tr>
-            <td colspan="3" style="text-align: right;">Summe für ${totalPersonen} Personen:</td>
-            <td class="text-right">CHF ${(parseFloat(v.pricePerPerson || 0) * totalPersonen).toFixed(2)}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      ${v.description ? `<div class="info-box">💡 ${v.description}</div>` : ""}
-    </div>
-  `).join("")}
-
-  <h2 class="section-title">✨ Optionale Ergänzungen</h2>
-  <div class="info-box">
-    Gerne ergänzen wir Ihre Auswahl mit: Getränkepakete (CHF 5–12/Person), Desserts & Süssgebäck, professioneller Service, Besteck & Geschirr, Aufbau & Abbau. Fragen Sie nach individuellen Optionen!
+  <div style="text-align: right;">
+    <div class="variante-price">CHF ${totalPrice.toFixed(2)}</div>
+    <div class="variante-price-sub">à CHF ${pricePerPerson.toFixed(2)}/Person</div>
   </div>
+</div>
 
-  ${Object.keys(organisatorisch).length > 0 ? `
-    <h2 class="section-title">📍 Organisatorische Details</h2>
-    <div class="org-box">
-      ${Object.entries(organisatorisch).map(([key, value]: [string, any]) => `
-        <div class="org-item">
-          <div class="org-label">${key}:</div>
-          <div class="org-value">${value}</div>
-        </div>
-      `).join("")}
-    </div>
-  ` : ""}
+<table>
+  <thead>
+    <tr>
+      <th>Produkt & Artikelnummer</th>
+      <th style="text-align: center; width: 80px;">Menge</th>
+      <th style="text-align: right; width: 100px;">Einzelpreis</th>
+      <th style="text-align: right; width: 100px;">Total</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${productRows}
+    <tr class="total-row">
+      <td colspan="3" style="text-align: right;">Gesamttotal für ${totalPersonen} Personen:</td>
+      <td style="text-align: right;">CHF ${totalPrice.toFixed(2)}</td>
+    </tr>
+  </tbody>
+</table>
 
-  <div class="next-steps">
-    <h3>🎯 Nächste Schritte</h3>
-    <p>Diese Offerte ist <strong>30 Tage gültig</strong>. Für Fragen, Änderungswünsche oder zur Buchung kontaktieren Sie uns:</p>
-    <div class="contact">
-      📞 +41 62 869 70 00<br>
-      📧 catering@beck-maier.ch<br>
-      🌐 www.beck-maier.ch
-    </div>
-  </div>
+<div class="notes">
+  <strong>💡 Hinweise:</strong><br/>
+  Alle Preise verstehen sich inklusive Mehrwertsteuer. Lieferung und Aufbau können separat vereinbart werden. 
+  Gerne passen wir die Zusammenstellung nach Ihren individuellen Wünschen an.
+</div>
 
+${organizatorisch.lieferung || organizatorisch.zeitpunkt ? `
+<div class="validity">
+  <strong>📍 Organisatorisches:</strong><br/>
+  ${organizatorisch.lieferung ? `Lieferung: ${organizatorisch.lieferung}<br/>` : ""}
+  ${organizatorisch.zeitpunkt ? `Zeitpunkt: ${organizatorisch.zeitpunkt}` : ""}
+</div>
+` : ""}
+
+<div class="validity">
+  <strong>⏰ Gültigkeitsdauer:</strong> Diese Offerte ist 30 Tage gültig. 
+  Für Fragen, Änderungswünsche oder zur Buchung kontaktieren Sie uns bitte.
 </div>
 
 <div class="footer">
-  <h2>Beck Maier & Co AG</h2>
+  <h3>Beck Maier & Co AG</h3>
   <p>Gut · Gesund · Genial</p>
-  <div class="contact">
-    Catering-Offerte • Generiert durch KI-System<br>
-    www.beck-maier.ch
-  </div>
+  <p style="margin-top: 15px; font-size: 11px;">📞 +41 62 869 70 00</p>
+  <p style="font-size: 11px;">📧 catering@beck-maier.ch</p>
+  <p style="font-size: 11px;">🌐 www.beck-maier.ch</p>
 </div>
 
 </body>
