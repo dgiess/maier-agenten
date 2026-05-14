@@ -44,7 +44,7 @@ PHASE 3: Wenn Kunde "Variante 1/2/3" schreibt → HTML-Offerte generieren
 WICHTIG:
 ✅ REALISTISCHE MENGEN (nicht nur Brote!)
 ✅ Apéro = Snacks + Belegte + Partybrote + Süsses (NICHT NUR BROTE!)
-✅ Getränke bei Bedarf mitrechnen (min 0.25-0.5L/Person)
+✅ Getränke IMMER mitrechnen (min 0.25-0.5L/Person)
 ✅ Preise REALISTISCH
 ✅ Keine langen Erklärungen`;
 
@@ -140,6 +140,7 @@ export default function AgentSystem() {
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
   const [routingInfo, setRoutingInfo] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+  const [currentChatAgent, setCurrentChatAgent] = useState<string | null>(null);
   const [shopData, setShopData] = useState<any[]>([]);
   const [oneDriveData, setOneDriveData] = useState<Record<string, any>>({});
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -189,10 +190,18 @@ export default function AgentSystem() {
     setIsLoggedIn(false);
     setMessages([]);
     setConversationHistory([]);
+    setCurrentChatAgent(null);
   }
 
-  function routeMessage(text: string) {
+  function routeMessage(text: string, existingAgent: string | null) {
     const t = text.toLowerCase();
+    
+    // WENN BEREITS EIN AGENT AKTIV IST: Bleib bei diesem Agent!
+    if (existingAgent && existingAgent !== "orchestrator") {
+      return { agent: existingAgent, grund: null };
+    }
+
+    // NEUE ANFRAGE: Route zur richtigen Person
     if (t.includes("report") || t.includes("controlling") || t.includes("analyse"))
       return { agent: "controlling", grund: "Lorena generiert Report" };
     if (t.includes("filial") || t.includes("performance"))
@@ -201,6 +210,7 @@ export default function AgentSystem() {
       return { agent: "catering", grund: "Alex erstellt Offerte" };
     if (t.includes("reklamation") || t.includes("brief"))
       return { agent: "admin", grund: "Mirjam bearbeitet Anfrage" };
+    
     return { agent: "orchestrator", grund: null };
   }
 
@@ -260,28 +270,34 @@ export default function AgentSystem() {
     const updatedHistory = [...conversationHistory, { role: "user", content: userText }];
 
     try {
-      const routing = routeMessage(userText);
-      setActiveAgent(routing.agent);
+      // WICHTIG: Übergebe currentChatAgent zum Routing
+      const routing = routeMessage(userText, currentChatAgent);
+      const selectedAgent = routing.agent;
+      
+      setActiveAgent(selectedAgent);
       if (routing.grund) setRoutingInfo(routing.grund);
+      
+      // Speichere den aktiven Agent für zukünftige Nachrichten
+      setCurrentChatAgent(selectedAgent);
 
-      const agent = AGENTS[routing.agent];
+      const agent = AGENTS[selectedAgent];
 
-      if (agent?.useOneDrive && !oneDriveData[routing.agent]) {
-        await loadOneDriveData(routing.agent);
+      if (agent?.useOneDrive && !oneDriveData[selectedAgent]) {
+        await loadOneDriveData(selectedAgent);
       }
 
-      const answer = await callClaude(agent.systemPrompt, updatedHistory, routing.agent);
+      const answer = await callClaude(agent.systemPrompt, updatedHistory, selectedAgent);
       setConversationHistory([...updatedHistory, { role: "assistant", content: answer }]);
 
       let reportData = null;
-      if (agent?.canGenerateReports && oneDriveData[routing.agent]?.length > 0) {
-        const pdfContent = oneDriveData[routing.agent].map((f: any) => `${f.name}: ${f.content}`).join("\n\n");
-        reportData = await generateReport(routing.agent, pdfContent);
+      if (agent?.canGenerateReports && oneDriveData[selectedAgent]?.length > 0) {
+        const pdfContent = oneDriveData[selectedAgent].map((f: any) => `${f.name}: ${f.content}`).join("\n\n");
+        reportData = await generateReport(selectedAgent, pdfContent);
       }
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: answer, agent: routing.agent, grund: routing.grund, reportData },
+        { role: "assistant", text: answer, agent: selectedAgent, grund: routing.grund, reportData },
       ]);
     } catch (err: any) {
       setMessages((prev) => [...prev, { role: "assistant", text: `Fehler: ${err.message}`, agent: "error" }]);
@@ -295,6 +311,7 @@ export default function AgentSystem() {
   function handleClear() {
     setMessages([]);
     setConversationHistory([]);
+    setCurrentChatAgent(null);
   }
 
   function handleDownload(data: any) {
