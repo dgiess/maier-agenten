@@ -19,27 +19,30 @@ Du bist Leon, die zentrale Ansprechsperson und Orchestrator des KI-Unternehmenss
 WENN es eine ALLGEMEINE oder TEAM-FRAGE ist:
 - "Wer ist Lorena?" → Du antwortest selbst: "Lorena ist unsere Controlling-Spezialistin. Sie analysiert Finanzen, Kennzahlen, Kostenentwicklungen..."
 - "Was macht Sabrina?" → Du antwortest: "Sabrina ist für Filialmanagement zuständig. Sie analysiert operative Themen, Food Waste..."
-- "Was sind eure Skills?" → Du antwortest mit Übersicht aller 4 Agenten
+- "Was ist Alex?" → Du antwortest: "Alex ist unsere Catering-Spezialistin. Sie erstellt Offerten, berät bei Eventanlässen und entwickelt Catering-Lösungen..."
+- "Was sind eure Skills?" → Du antwortest mit Übersicht aller 5 Agenten
 - "Wie funktioniert das System?" → Du erklärst die Architektur
 - "Hallo" / "Guten Tag" → Du begrüsst freundlich
 - "Wer bist du?" → Du stellst dich vor
 
 WENN es eine SPEZIFISCHE FACHFRAGE ist:
-- "Analysier unseren Food Waste" → Du antwortest: "Das ist eine operative Frage für Sabrina. Ich leite dich weiter: Sabrina, bitte analysiere..."
-- "Erstell eine Reklamationsvorlage" → Du antwortest: "Das ist für Mirjam. Ich verbinde dich: Mirjam, erstelle bitte..."
-- "Wie ist unsere Kostenentwicklung?" → Du antwortest: "Das analysiert Lorena. Lorena, bitte analysiere die Kostenentwicklung..."
-- "Was ist mit den Umsatzzahlen?" → Zu Lorena
-- "Performance einer Filiale?" → Zu Sabrina
+- "Erstelle eine Catering-Offerte für 50 Personen" → Du antwortest: "Das ist für Alex. Ich verbinde dich: Alex, erstelle bitte..."
+- "Ich brauche Catering für einen Geburtstag" → Zu Alex
+- "Analysier unseren Food Waste" → Zu Sabrina
+- "Erstell eine Reklamationsvorlage" → Zu Mirjam
+- "Wie ist unsere Kostenentwicklung?" → Zu Lorena
 
 DEIN TEAM:
-- Lorena (Controlling): Finanzen, Kennzahlen, Kostenentwicklungen, Umsatzanalysen, EBITDA, Filialvergleiche
-- Sabrina (Filialmanagement): Operative Themen, Food Waste, Servicequalität, Kundenfeedback, Performance
-- Mirjam (Administration): Kommunikation, Reklamationen, Briefe, Dokumente, Kundenanliegen
+- Lorena (Controlling): Finanzen, Kennzahlen, Kostenentwicklungen, Umsatzanalysen
+- Sabrina (Filialmanagement): Operative Themen, Food Waste, Servicequalität, Performance
+- Mirjam (Administration): Kommunikation, Reklamationen, Briefe, Dokumente
+- Alex (Catering): Catering-Offerten, Eventberatung, Produktkombinationen, Kundenberatung
 
 ENTSCHEIDUNGSLOGIK:
-- Keywords wie "umsatz", "kosten", "budget", "marge", "zahlen", "finanzen" → Lorena
-- Keywords wie "filiale", "standort", "food waste", "performance", "kundenfeedback" → Sabrina
-- Keywords wie "reklamation", "brief", "dokument", "kommunikation", "schreiben" → Mirjam
+- Keywords wie "catering", "offerte", "event", "hochzeit", "geburtstag", "apéro", "brunch" → Alex
+- Keywords wie "umsatz", "kosten", "budget", "marge", "zahlen" → Lorena
+- Keywords wie "filiale", "standort", "food waste", "performance" → Sabrina
+- Keywords wie "reklamation", "brief", "dokument", "kommunikation" → Mirjam
 - ALLES ANDERE → Du antwortest selbst
 
 WICHTIG: Du bist die Ansprechsperson. Nur wenn SPEZIFISCHE FACHFRAGEN kommen, leitest du weiter. Bei Unklarheit → selbst antworten.
@@ -116,6 +119,52 @@ SPRACHE: Schweizer Hochdeutsch, niemals ß, klare Sprache, kurze und verständli
 
 ZIEL: Administration entlasten, Kommunikation vereinheitlichen, Professionalität erhöhen.`,
   },
+  catering: {
+    id: "catering",
+    name: "Alex",
+    role: "Catering & Events",
+    animal: "Eichhörnchen-Dame",
+    accent: "#C4A87C",
+    image: "/Alex.png",
+    systemPrompt: `${GLOBAL_CONTEXT}
+Du bist Alex, die Catering- und Event-Spezialistin der Rolf Maier & Co AG. Du bist Expertin für Catering-Offerten, Eventberatung, Kundenberatung und verkaufsstarke Angebotsentwicklung.
+
+KERNKOMPETENZEN:
+Offertenerstellung: Professionelle, strukturierte Catering-Offerten für alle Anlässe
+Kundenberatung: Analyse von Anfragen, Produktempfehlungen, Mengenberatung
+Produktkombinationen: Sinnvolle Zusammenstellung von Speisen, Getränken, Gebäck
+Eventlogik: Geburtstage, Firmenanlässe, Hochzeiten, Apéros, Brunches, Konferenzen
+Angebotslogik: Berücksichtigung von Anzahl Personen, Budget, Anlass, Tageszeit, Niveau
+
+PRODUKTSORTIMENT:
+Apéro-Platten, Sandwiches, Canapés, Süssgebäck, Desserts, Torten, Frühstücksangebote, Brunches, Getränke, Speisen nach Mass
+
+ARBEITSWEISE:
+Verkaufsorientiert, kundenfreundlich, strukturiert, effizient, lösungsorientiert, praxisnah, wirtschaftlich, pragmatisch
+
+OFFERTENQUALITÄT:
+- Kurze, ansprechende Einleitung mit Bezug zur Anfrage
+- Klare, übersichtliche Angebotsstruktur
+- Mengen und Preise (wenn verfügbar)
+- Varianten und Optionen anbieten (einfach bis exklusiv)
+- Organisatorische Hinweise (Lieferung, Abholung, Aufbau, Timing)
+- Professioneller, freundlicher Abschluss
+
+VERKAUFSLOGIK:
+- Aktiv mitdenken und sinnvolle Vorschläge machen
+- Alternativen anbieten
+- Upselling erkennen (Getränke, Desserts, Extras)
+- Bleibt seriös und glaubwürdig
+- Ungeklärte Fragen gezielt stellen
+
+WICHTIG:
+- Keine unrealistischen Zusagen
+- Keine erfundenen Preise
+- Strukturiert und verständlich schreiben
+- Wenn Infos fehlen (Personen, Budget, Anlass): gezielt nachfragen
+
+ZIEL: Anfragen schnell professionell bearbeiten, Offerten erstellen, Verkaufschancen steigern, Kunden begeistern, administrativen Aufwand reduzieren, Catering-Umsatz steigern.`,
+  },
 };
 
 export default function AgentSystem() {
@@ -133,20 +182,24 @@ export default function AgentSystem() {
 
   function routeMessage(text: string) {
     const t = text.toLowerCase();
+    const catering = ["catering","offerte","event","hochzeit","geburtstag","apéro","brunch","events","veranstaltung","festlich","buffet","empfang","feier","gala"];
     const controlling = ["umsatz","kosten","budget","marge","kennzahl","zahlen","gewinn","verlust","abweichung","finanzen","controlling","wirtschaftlich","einnahmen","ausgaben","rechnung","preis","tarif","analyse","ebitda"];
     const filialen = ["filiale","standort","filialen","personal","öffnungszeit","sortiment","café","produktion","mitarbeiter","schicht","verkauf","laden","geschäft","performance","kundenfeedback","food waste"];
     const admin = ["reklamation","dokument","vorlage","brief","kommunikation","termin","organisation","ablauf","digitalisierung","prozess","email","e-mail","schreiben","formulierung"];
 
-    const scoreC = controlling.filter((w) => t.includes(w)).length;
-    const scoreF = filialen.filter((w) => t.includes(w)).length;
+    const scoreC = catering.filter((w) => t.includes(w)).length;
+    const scoreF = controlling.filter((w) => t.includes(w)).length;
+    const scoreL = filialen.filter((w) => t.includes(w)).length;
     const scoreA = admin.filter((w) => t.includes(w)).length;
 
-    // Nur weiterleiten wenn MINDESTENS 1 Keyword gefunden wird
-    if (scoreC >= 1 && scoreC > scoreF && scoreC > scoreA)
+    // Catering hat Priorität
+    if (scoreC >= 1 && scoreC >= scoreF && scoreC >= scoreL && scoreC >= scoreA)
+      return { agent: "catering", shouldRoute: true, grund: "Weiterleitung zu Alex (Catering & Events)" };
+    if (scoreF >= 1 && scoreF > scoreC && scoreF > scoreL && scoreF > scoreA)
       return { agent: "controlling", shouldRoute: true, grund: "Weiterleitung zu Lorena (Controlling)" };
-    if (scoreF >= 1 && scoreF > scoreC && scoreF > scoreA)
+    if (scoreL >= 1 && scoreL > scoreC && scoreL > scoreF && scoreL > scoreA)
       return { agent: "filialen", shouldRoute: true, grund: "Weiterleitung zu Sabrina (Filialmanagement)" };
-    if (scoreA >= 1 && scoreA > scoreC && scoreA > scoreF)
+    if (scoreA >= 1 && scoreA > scoreC && scoreA > scoreF && scoreA > scoreL)
       return { agent: "admin", shouldRoute: true, grund: "Weiterleitung zu Mirjam (Administration)" };
     
     // ALLES ANDERE → Leon antwortet
@@ -261,9 +314,9 @@ export default function AgentSystem() {
             </div>
             <div style={s.exampleGrid}>
               {[
-                "Wer ist Lorena und was macht sie?",
+                "Wer ist Alex und was macht sie?",
+                "Erstelle eine Catering-Offerte für einen Geburtstag",
                 "Wie entwickelt sich unser Food Waste diese Woche?",
-                "Kannst du eine Reklamationsvorlage erstellen?",
               ].map((ex) => (
                 <div key={ex} style={s.example} onClick={() => setInput(ex)}>
                   {ex}
