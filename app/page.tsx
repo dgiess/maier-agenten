@@ -166,7 +166,13 @@ ZIEL: Administration entlasten, Kommunikation vereinheitlichen.`,
   },
 };
 
+const CORRECT_PASSWORD = "BeckMaier2024"; // Änder dieses Passwort!
+
 export default function AgentSystem() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [loginPassword, setLoginPassword] = useState("");
+  const [loginError, setLoginError] = useState("");
+
   const [messages, setMessages] = useState<any[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -192,8 +198,30 @@ export default function AgentSystem() {
         console.error("Shop data load error:", error);
       }
     }
-    loadShopData();
-  }, []);
+    if (isLoggedIn) {
+      loadShopData();
+    }
+  }, [isLoggedIn]);
+
+  function handleLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (loginPassword === CORRECT_PASSWORD) {
+      setIsLoggedIn(true);
+      setLoginPassword("");
+      setLoginError("");
+    } else {
+      setLoginError("Passwort ist falsch. Bitte versuchen Sie es erneut.");
+      setLoginPassword("");
+    }
+  }
+
+  function handleLogout() {
+    setIsLoggedIn(false);
+    setMessages([]);
+    setConversationHistory([]);
+    setLoginPassword("");
+    setLoginError("");
+  }
 
   function routeMessage(text: string) {
     const t = text.toLowerCase();
@@ -288,6 +316,36 @@ export default function AgentSystem() {
     }
   }
 
+  if (!isLoggedIn) {
+    return (
+      <div style={s.loginRoot}>
+        <div style={s.loginContainer}>
+          <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 80, objectFit: "contain", marginBottom: "20px" }} />
+          <div style={s.loginTitle}>Beck Maier & Co AG</div>
+          <div style={s.loginSubtitle}>KI-Agentensystem</div>
+          
+          <form onSubmit={handleLogin} style={s.loginForm}>
+            <label style={s.loginLabel}>
+              Passwort eingeben:
+            </label>
+            <input
+              type="password"
+              value={loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
+              placeholder="Passwort"
+              style={s.loginInput}
+              autoFocus
+            />
+            {loginError && <div style={s.loginError}>{loginError}</div>}
+            <button type="submit" style={s.loginButton}>
+              Anmelden
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   const specialists = Object.values(AGENTS).filter((a) => a.id !== "orchestrator");
 
   return (
@@ -307,6 +365,9 @@ export default function AgentSystem() {
           {specialists.map((a) => (
             <TeamCard key={a.id} agent={a} isActive={activeAgent === a.id} />
           ))}
+          <button style={s.logoutBtn} onClick={handleLogout}>
+            Abmelden
+          </button>
         </div>
       </div>
 
@@ -439,6 +500,15 @@ const COLORS = {
 };
 
 const s = {
+  loginRoot: { display: "flex", flexDirection: "column" as const, alignItems: "center", justifyContent: "center", height: "100vh", background: COLORS.background, fontFamily: "Georgia, serif" },
+  loginContainer: { background: "white", padding: "40px 60px", borderRadius: "16px", border: `3px solid ${COLORS.accent}`, textAlign: "center" as const, maxWidth: "400px" },
+  loginTitle: { fontSize: "24px", fontWeight: "700", color: COLORS.primary, marginBottom: "4px" },
+  loginSubtitle: { fontSize: "14px", color: COLORS.text, marginBottom: "30px", opacity: 0.8 },
+  loginForm: { display: "flex", flexDirection: "column" as const, gap: "16px" },
+  loginLabel: { fontSize: "14px", color: COLORS.text, fontWeight: "600", textAlign: "left" as const },
+  loginInput: { padding: "12px 14px", border: `2px solid ${COLORS.border}`, borderRadius: "8px", fontSize: "16px", fontFamily: "Georgia, serif", color: COLORS.text, background: COLORS.light },
+  loginError: { color: "#c62828", fontSize: "13px", fontWeight: "600" },
+  loginButton: { padding: "12px 24px", background: COLORS.primary, color: "white", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "700", cursor: "pointer", transition: "all 0.2s" },
   root: { display: "flex", flexDirection: "column" as const, height: "100vh", background: COLORS.background, color: COLORS.text, fontFamily: "Georgia, 'Crimson Text', serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif", fontSize: "16px" },
   header: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 28px", borderBottom: `3px solid ${COLORS.accent}`, background: "white", flexWrap: "wrap" as const, gap: "20px" },
   headerContent: { display: "flex", alignItems: "center", gap: "16px" },
@@ -447,6 +517,7 @@ const s = {
   tagline: { fontSize: "12px", color: COLORS.accent, fontFamily: "Georgia, serif", fontStyle: "italic", letterSpacing: "0.1em" },
   headerSub: { fontSize: "12px", color: COLORS.text, fontFamily: "'Courier New', monospace", opacity: 0.6 },
   teamRow: { display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" as const },
+  logoutBtn: { background: "white", border: `2px solid ${COLORS.border}`, borderRadius: "8px", color: COLORS.primary, padding: "8px 16px", fontSize: "12px", cursor: "pointer", fontFamily: "'Courier New', monospace", fontWeight: "600", transition: "all 0.2s" },
   divider: { width: "1px", height: "70px", background: COLORS.border, margin: "0 8px" },
   memoryBar: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 28px", background: COLORS.light, borderBottom: `1px solid ${COLORS.border}`, fontSize: "13px", fontFamily: "'Courier New', monospace" },
   memoryDot: { width: "8px", height: "8px", background: COLORS.accent, borderRadius: "50%", display: "inline-block" },
