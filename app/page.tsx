@@ -364,7 +364,7 @@ export default function AgentSystem() {
   if (!isLoggedIn) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "100vh", background: COLORS.background, fontFamily: "Georgia, serif", padding: "16px" }}>
-        <div style={{ background: "white", padding: "32px 24px", borderRadius: "16px", border: `3px solid ${COLORS.accent}`, textAlign: "center", maxWidth: "100%", width: "100%", maxWidth: "400px" }}>
+        <div style={{ background: "white", padding: "32px 24px", borderRadius: "16px", border: `3px solid ${COLORS.accent}`, textAlign: "center", width: "100%", maxWidth: "400px" }}>
           <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 60, objectFit: "contain", marginBottom: "16px" }} />
           <div style={{ fontSize: "20px", fontWeight: "700", color: COLORS.primary, marginBottom: "4px" }}>Beck Maier & Co AG</div>
           <div style={{ fontSize: "12px", color: COLORS.text, marginBottom: "24px", opacity: 0.8 }}>KI-Agentensystem</div>
@@ -381,7 +381,6 @@ export default function AgentSystem() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: COLORS.background, color: COLORS.text, fontFamily: "Georgia, serif" }}>
-      {/* HEADER */}
       <div style={{ padding: "12px 16px", borderBottom: `3px solid ${COLORS.accent}`, background: "white", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "8px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0, flex: 1 }}>
           <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 40, objectFit: "contain", flexShrink: 0 }} />
@@ -393,7 +392,6 @@ export default function AgentSystem() {
         <button onClick={handleLogout} style={{ background: "white", border: `2px solid ${COLORS.border}`, borderRadius: "6px", color: COLORS.primary, padding: "6px 10px", fontSize: "11px", cursor: "pointer", fontWeight: "600", flexShrink: 0 }}>Abmelden</button>
       </div>
 
-      {/* AGENT PILLS - Mobile Scroll */}
       <div style={{ padding: "8px 12px", borderBottom: `1px solid ${COLORS.border}`, background: "white", overflowX: "auto", display: "flex", gap: "8px", WebkitOverflowScrolling: "touch" }}>
         {Object.values(AGENTS).filter((a) => a.id !== "orchestrator").map((a) => (
           <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "6px", padding: "6px 10px", borderRadius: "6px", border: `1.5px solid ${a.accent}`, background: "#F5F1EB", whiteSpace: "nowrap", flexShrink: 0 }}>
@@ -405,7 +403,6 @@ export default function AgentSystem() {
         ))}
       </div>
 
-      {/* MEMORY BAR */}
       {conversationHistory.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "8px 12px", background: COLORS.light, borderBottom: `1px solid ${COLORS.border}`, fontSize: "12px" }}>
           <span style={{ width: "6px", height: "6px", background: COLORS.accent, borderRadius: "50%", flexShrink: 0 }} />
@@ -414,7 +411,6 @@ export default function AgentSystem() {
         </div>
       )}
 
-      {/* MESSAGES */}
       <div style={{ flex: 1, overflowY: "auto", padding: "16px 12px", display: "flex", flexDirection: "column", gap: "12px", WebkitOverflowScrolling: "touch" }}>
         {messages.length === 0 && (
           <div style={{ margin: "auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
@@ -486,7 +482,6 @@ export default function AgentSystem() {
         <div ref={bottomRef} />
       </div>
 
-      {/* INPUT */}
       <div style={{ padding: "12px", borderTop: `3px solid ${COLORS.accent}`, background: "white", display: "flex", gap: "8px", alignItems: "flex-end" }}>
         <textarea style={{ flex: 1, background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "8px", padding: "10px 12px", color: COLORS.text, fontSize: "14px", fontFamily: "Georgia, serif", maxHeight: "100px", minHeight: "40px", resize: "none" }} placeholder="Nachricht..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={1} />
         <button style={{ width: "40px", height: "40px", background: COLORS.primary, color: "white", border: "none", borderRadius: "8px", fontSize: "16px", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", opacity: loading || !input.trim() ? 0.5 : 1, flexShrink: 0 }} onClick={handleSend} disabled={loading || !input.trim()}>↑</button>
