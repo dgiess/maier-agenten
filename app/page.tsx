@@ -44,7 +44,7 @@ PHASE 3: Wenn Kunde "Variante 1/2/3" schreibt → HTML-Offerte generieren
 WICHTIG:
 ✅ REALISTISCHE MENGEN (nicht nur Brote!)
 ✅ Apéro = Snacks + Belegte + Partybrote + Süsses (NICHT NUR BROTE!)
-✅ Getränke IMMER mitrechnen (min 0.25-0.5L/Person)
+✅ Getränke bei Bedarf mitrechnen (min 0.25-0.5L/Person)
 ✅ Preise REALISTISCH
 ✅ Keine langen Erklärungen`;
 
