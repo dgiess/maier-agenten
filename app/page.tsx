@@ -11,7 +11,7 @@ PRODUKT-KATEGORIEN:
 - SÜSSES: Gâteaux, Petit Fours, Macarons, Éclair, Tartelettes, Kokosbusserl
 - GETRÄNKE: Kaffee, Tee, Säfte, Mineralwasser, Bier, Wein
 
-APÉRO (Stehreception): Salzstangen (10%) + Käsegebäck (15%) + Belegte Brote (25%) + Partybrote (30%) + Petit Fours (15%) + Getränke
+APÉRO: Salzstangen (10%) + Käsegebäck (15%) + Belegte Brote (25%) + Partybrote (30%) + Petit Fours (15%) + Getränke
 → CHF 28-35/Person
 
 GEBURTSTAG: Belegte Brote (30%) + Partygebäck (25%) + Gâteau (25%) + Süsses (15%) + Getränke (5%)
@@ -24,29 +24,68 @@ HOCHZEIT: Komplette Menü-Auswahl + Warme Speisen + Premium-Getränke
 → CHF 45-70/Person
 
 WORKFLOW:
-PHASE 1: Stelle diese 5 Fragen (freundlich, nacheinander):
+
+PHASE 1 - INFORMATIONEN SAMMELN:
+Stelle diese 5 Fragen (freundlich, nacheinander):
 1. Wie viele Personen?
 2. Welcher Anlass? (Apéro/Geburtstag/Geschäftsessen/Hochzeit/Sonstiges)
 3. Welches Datum/Uhrzeit?
 4. Budget/Preisvorstellung pro Person?
 5. Niveau? (Einfach/Standard/Premium)
 
-PHASE 2: Erstelle 3 konkrete MENÜ-VARIANTEN mit:
-**Variante 1: EINFACH** (z.B. CHF 22/Person)
-**Variante 2: STANDARD** (z.B. CHF 32/Person)
-**Variante 3: PREMIUM** (z.B. CHF 42/Person)
+PHASE 2 - VARIANTEN ERSTELLEN:
+Basierend auf den Infos: Erstelle 3 konkrete MENÜ-VARIANTEN:
 
-Jede mit Produkten, Mengen, Preisen, Gesamtbetrag.
-Format: | Produkt | Menge | à CHF | Total |
+**Variante 1: EINFACH** (z.B. CHF 22/Person = CHF 660 für 30)
+- Salzstangen & einfaches Nussgebäck (150g)
+- Belegte Brote mit Schinken/Käse (8 Stück)
+- Käsegebäck (80g)
+- Petit Fours (40g)
+- Mineralwasser & Saft (0.5L pro 4 Personen)
 
-PHASE 3: Wenn Kunde "Variante 1/2/3" schreibt → HTML-Offerte generieren
+**Variante 2: STANDARD** (z.B. CHF 32/Person = CHF 960 für 30)
+- Salzstangen, Nussgebäck, Käsegebäck (250g Mix)
+- Belegte Brote (Schinken, Käse, Vegetarisch) (12 Stück)
+- Partybrote Farcis (6 Stück)
+- Petit Fours & Macarons (80g)
+- Getränke (Wasser, Saft, Bier, Wein)
 
-WICHTIG:
-✅ REALISTISCHE MENGEN (nicht nur Brote!)
-✅ Apéro = Snacks + Belegte + Partybrote + Süsses (NICHT NUR BROTE!)
-✅ Getränke IMMER mitrechnen (min 0.25-0.5L/Person)
-✅ Preise REALISTISCH
-✅ Keine langen Erklärungen`;
+**Variante 3: PREMIUM** (z.B. CHF 42/Person = CHF 1260 für 30)
+- Salzstangen, Nussgebäck, Käsegebäck, Oliven (350g Mix)
+- Hochwertige belegte Brote (Rohschinken, Prosciutto, Bergkäse) (15 Stück)
+- Partybrote Farcis Fleisch & Gemüse (10 Stück)
+- Gourmet Petit Fours, Macarons, Éclairs (120g)
+- Premium Getränke (Mineralwasser, Saft, Bier, Wein)
+
+Format jeder Variante:
+| Produkt | Menge | à CHF | Total |
+|---------|-------|-------|--------|
+
+Beschreibung: kurz und ansprechend
+
+PHASE 3 - HTML-OFFERTE GENERIEREN:
+WICHTIG: SCHREIBE KEINEN HTML-CODE! 
+
+Wenn Kunde "Variante 1/2/3" oder "Standard/Einfach/Premium" schreibt:
+1. Extrahiere die Daten aus der Variante (Anlass, Personen, Produkte, Preise)
+2. Gib mir REINE DATEN in dieser Struktur:
+   {
+     "anlass": "Geburtstagsapéro",
+     "anzahlPersonen": 30,
+     "datum": "20. Juni 2025",
+     "varianten": [{
+       "name": "Standard",
+       "pricePerPerson": 32,
+       "items": [
+         {"name": "Salzstangen & Nussgebäck", "quantity": 250, "price": 8},
+         {"name": "Belegte Brote (3 Sorten)", "quantity": 12, "price": 3.80}
+       ]
+     }],
+     "organizatorisch": {"Lieferung": "Selbstabholung", "Zeitpunkt": "Nach Absprache"}
+   }
+3. Sag: "HTML-Offerte wird generiert..."
+
+WICHTIG: NIEMALS HTML CODE SCHREIBEN! Nur Daten strukturieren!`;
 
 const LORENA_SYSTEM = `Du bist Lorena, Controlling-Spezialistin. Lade OneDrive-Dateien automatisch. Generiere HTML-Report (KEINE Fragen!)`;
 
@@ -196,12 +235,10 @@ export default function AgentSystem() {
   function routeMessage(text: string, existingAgent: string | null) {
     const t = text.toLowerCase();
     
-    // WENN BEREITS EIN AGENT AKTIV IST: Bleib bei diesem Agent!
     if (existingAgent && existingAgent !== "orchestrator") {
       return { agent: existingAgent, grund: null };
     }
 
-    // NEUE ANFRAGE: Route zur richtigen Person
     if (t.includes("report") || t.includes("controlling") || t.includes("analyse"))
       return { agent: "controlling", grund: "Lorena generiert Report" };
     if (t.includes("filial") || t.includes("performance"))
@@ -260,6 +297,21 @@ export default function AgentSystem() {
     }
   }
 
+  async function generateCateringOffer(offerData: any) {
+    try {
+      const res = await fetch("/api/catering-offer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ offerData }),
+      });
+      const data = await res.json();
+      return data;
+    } catch (e) {
+      console.error("Offer error:", e);
+      return null;
+    }
+  }
+
   async function handleSend() {
     if (!input.trim() || loading) return;
     const userText = input.trim();
@@ -270,14 +322,11 @@ export default function AgentSystem() {
     const updatedHistory = [...conversationHistory, { role: "user", content: userText }];
 
     try {
-      // WICHTIG: Übergebe currentChatAgent zum Routing
       const routing = routeMessage(userText, currentChatAgent);
       const selectedAgent = routing.agent;
       
       setActiveAgent(selectedAgent);
       if (routing.grund) setRoutingInfo(routing.grund);
-      
-      // Speichere den aktiven Agent für zukünftige Nachrichten
       setCurrentChatAgent(selectedAgent);
 
       const agent = AGENTS[selectedAgent];
@@ -290,6 +339,21 @@ export default function AgentSystem() {
       setConversationHistory([...updatedHistory, { role: "assistant", content: answer }]);
 
       let reportData = null;
+      let offerData = null;
+
+      // CATERING: Versuche JSON zu extrahieren
+      if (selectedAgent === "catering" && answer.includes("{")) {
+        try {
+          const jsonMatch = answer.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const offerDataObj = JSON.parse(jsonMatch[0]);
+            offerData = await generateCateringOffer(offerDataObj);
+          }
+        } catch (e) {
+          console.error("JSON parse error:", e);
+        }
+      }
+
       if (agent?.canGenerateReports && oneDriveData[selectedAgent]?.length > 0) {
         const pdfContent = oneDriveData[selectedAgent].map((f: any) => `${f.name}: ${f.content}`).join("\n\n");
         reportData = await generateReport(selectedAgent, pdfContent);
@@ -297,7 +361,7 @@ export default function AgentSystem() {
 
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: answer, agent: selectedAgent, grund: routing.grund, reportData },
+        { role: "assistant", text: answer, agent: selectedAgent, grund: routing.grund, reportData, offerData },
       ]);
     } catch (err: any) {
       setMessages((prev) => [...prev, { role: "assistant", text: `Fehler: ${err.message}`, agent: "error" }]);
@@ -423,6 +487,11 @@ export default function AgentSystem() {
               {msg.reportData && (
                 <button onClick={() => handleDownload(msg.reportData)} style={{ marginTop: "10px", padding: "8px 14px", background: ag?.accent, color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", alignSelf: "flex-start" }}>
                   📥 {msg.reportData.filename}
+                </button>
+              )}
+              {msg.offerData && (
+                <button onClick={() => handleDownload(msg.offerData)} style={{ marginTop: "10px", padding: "8px 14px", background: ag?.accent, color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "11px", fontWeight: "600", alignSelf: "flex-start" }}>
+                  📥 {msg.offerData.filename}
                 </button>
               )}
             </div>
