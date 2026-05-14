@@ -52,7 +52,19 @@ DEIN TEAM:
 
 ROUTING: catering/offerte/event → Alex | umsatz/kosten/zahlen → Lorena | filiale/food waste → Sabrina | reklamation/brief → Mirjam | SONST → du`;
 
-const AGENTS = {
+type AgentConfig = {
+  id: string;
+  name: string;
+  role: string;
+  animal: string;
+  accent: string;
+  image: string;
+  systemPrompt: string;
+  useShopData?: boolean;
+  useOneDrive?: boolean;
+};
+
+const AGENTS: { [key: string]: AgentConfig } = {
   orchestrator: {
     id: "orchestrator",
     name: "Leon",
@@ -214,13 +226,14 @@ export default function AgentSystem() {
 
   async function callClaude(systemPrompt: string, history: any[], agentId: string) {
     let enhancedPrompt = systemPrompt;
+    const agent = AGENTS[agentId];
 
-    if (AGENTS[agentId as keyof typeof AGENTS]?.useShopData && shopData.length > 0) {
+    if (agent?.useShopData && shopData.length > 0) {
       enhancedPrompt += `\n\nSHOP-PRODUKTE MIT AKTUELLEN PREISEN:\n`;
       enhancedPrompt += `\`\`\`\n${JSON.stringify(shopData.slice(0, 20), null, 2)}\n\`\`\``;
     }
 
-    if (AGENTS[agentId as keyof typeof AGENTS]?.useOneDrive && oneDriveData[agentId]) {
+    if (agent?.useOneDrive && oneDriveData[agentId]) {
       enhancedPrompt += `\n\nONEDRIVE DATEN (${agentId}):\n`;
       oneDriveData[agentId].forEach((file: any) => {
         enhancedPrompt += `\n---\nDATEI: ${file.name}\n${file.content.substring(0, 1000)}\n---`;
@@ -251,9 +264,9 @@ export default function AgentSystem() {
       setActiveAgent(routing.agent);
       if (routing.grund) setRoutingInfo(routing.grund);
 
-      const agent = AGENTS[routing.agent as keyof typeof AGENTS];
+      const agent = AGENTS[routing.agent];
 
-      if (agent.useOneDrive && !oneDriveData[routing.agent]) {
+      if (agent?.useOneDrive && !oneDriveData[routing.agent]) {
         await loadOneDriveData(routing.agent);
       }
 
@@ -377,7 +390,7 @@ export default function AgentSystem() {
               </div>
             );
           }
-          const ag = msg.agent && AGENTS[msg.agent as keyof typeof AGENTS];
+          const ag = AGENTS[msg.agent];
           return (
             <div key={i} style={s.assistantRow}>
               {ag && (
@@ -403,7 +416,7 @@ export default function AgentSystem() {
         })}
 
         {loading && (() => {
-          const ag = activeAgent && AGENTS[activeAgent as keyof typeof AGENTS] ? AGENTS[activeAgent as keyof typeof AGENTS] : AGENTS.orchestrator;
+          const ag = AGENTS[activeAgent || "orchestrator"];
           return (
             <div style={s.assistantRow}>
               <div style={s.agentHeader}>
@@ -432,7 +445,7 @@ export default function AgentSystem() {
   );
 }
 
-function TeamCard({ agent, isActive }: { agent: (typeof AGENTS)[keyof typeof AGENTS]; isActive: boolean }) {
+function TeamCard({ agent, isActive }: { agent: AgentConfig; isActive: boolean }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "12px", border: `2px solid ${isActive ? agent.accent : "#D4C5B9"}`, background: isActive ? `${agent.accent}15` : "#F5F1EB", transform: isActive ? "scale(1.05)" : "scale(1)", transition: "all 0.25s ease", minWidth: "150px" }}>
       <div style={{ position: "relative", flexShrink: 0 }}>
