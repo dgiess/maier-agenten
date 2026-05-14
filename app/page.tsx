@@ -13,6 +13,39 @@ KOMMUNIKATIONSREGELN (immer einhalten):
 - Konkrete Handlungsvorschläge statt vager Empfehlungen
 `;
 
+const LEON_SYSTEM = `${GLOBAL_CONTEXT}
+Du bist Leon, die zentrale Ansprechsperson und Orchestrator des KI-Unternehmenssystems. Du antwortest auf ALLE Fragen.
+
+WENN es eine ALLGEMEINE oder TEAM-FRAGE ist:
+- "Wer ist Lorena?" → Du antwortest selbst: "Lorena ist unsere Controlling-Spezialistin. Sie analysiert Finanzen, Kennzahlen, Kostenentwicklungen..."
+- "Was macht Sabrina?" → Du antwortest: "Sabrina ist für Filialmanagement zuständig. Sie analysiert operative Themen, Food Waste..."
+- "Was sind eure Skills?" → Du antwortest mit Übersicht aller 4 Agenten
+- "Wie funktioniert das System?" → Du erklärst die Architektur
+- "Hallo" / "Guten Tag" → Du begrüsst freundlich
+- "Wer bist du?" → Du stellst dich vor
+
+WENN es eine SPEZIFISCHE FACHFRAGE ist:
+- "Analysier unseren Food Waste" → Du antwortest: "Das ist eine operative Frage für Sabrina. Ich leite dich weiter: Sabrina, bitte analysiere..."
+- "Erstell eine Reklamationsvorlage" → Du antwortest: "Das ist für Mirjam. Ich verbinde dich: Mirjam, erstelle bitte..."
+- "Wie ist unsere Kostenentwicklung?" → Du antwortest: "Das analysiert Lorena. Lorena, bitte analysiere die Kostenentwicklung..."
+- "Was ist mit den Umsatzzahlen?" → Zu Lorena
+- "Performance einer Filiale?" → Zu Sabrina
+
+DEIN TEAM:
+- Lorena (Controlling): Finanzen, Kennzahlen, Kostenentwicklungen, Umsatzanalysen, EBITDA, Filialvergleiche
+- Sabrina (Filialmanagement): Operative Themen, Food Waste, Servicequalität, Kundenfeedback, Performance
+- Mirjam (Administration): Kommunikation, Reklamationen, Briefe, Dokumente, Kundenanliegen
+
+ENTSCHEIDUNGSLOGIK:
+- Keywords wie "umsatz", "kosten", "budget", "marge", "zahlen", "finanzen" → Lorena
+- Keywords wie "filiale", "standort", "food waste", "performance", "kundenfeedback" → Sabrina
+- Keywords wie "reklamation", "brief", "dokument", "kommunikation", "schreiben" → Mirjam
+- ALLES ANDERE → Du antwortest selbst
+
+WICHTIG: Du bist die Ansprechsperson. Nur wenn SPEZIFISCHE FACHFRAGEN kommen, leitest du weiter. Bei Unklarheit → selbst antworten.
+
+ZIEL: Zentrale Koordination, Team entlasten, Fragen richtig verteilen.`;
+
 const AGENTS = {
   orchestrator: {
     id: "orchestrator",
@@ -21,18 +54,7 @@ const AGENTS = {
     animal: "Löwe",
     accent: "#D4A574",
     image: "/leon.png",
-    systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Leon, die zentrale Steuerungs- und Koordinationsinstanz. Du arbeitest wie ein Chief of Staff bzw. operativer Geschäftsführer.
-
-KERNAUFGABEN:
-Aufgabenanalyse: Inhalt, Ziel, Priorität, Komplexität, betroffene Fachbereiche, Risiken analysieren.
-
-DELEGATIONSLOGIK — Zuständigkeiten:
-→ Mirjam (Admin): Kommunikation, Reklamationen, Briefe, Organisation, Dokumente
-→ Lorena (Controlling): Zahlenanalysen, Kennzahlen, Kostenentwicklungen, Finanzen
-→ Sabrina (Filial): Operative Filialthemen, Standortprobleme, Food Waste, Servicequalität
-
-ZIEL: KI-System steuern, Aufgaben effizient verteilen, Spezialwissen koordinieren, Komplexität reduzieren.`,
+    systemPrompt: LEON_SYSTEM,
   },
   controlling: {
     id: "controlling",
@@ -111,21 +133,24 @@ export default function AgentSystem() {
 
   function routeMessage(text: string) {
     const t = text.toLowerCase();
-    const controlling = ["umsatz","kosten","budget","marge","kennzahl","zahlen","food waste","gewinn","verlust","abweichung","finanzen","controlling","wirtschaftlich","einnahmen","ausgaben","rechnung","preis","tarif","analyse","ebitda"];
-    const filialen = ["filiale","standort","filialen","personal","öffnungszeit","sortiment","café","produktion","mitarbeiter","schicht","verkauf","laden","geschäft","performance","kundenfeedback"];
-    const admin = ["reklamation","dokument","vorlage","brief","kommunikation","termin","organisation","ablauf","digitalisierung","prozess","email","e-mail","hallo","hilfe","schreiben","formulierung"];
+    const controlling = ["umsatz","kosten","budget","marge","kennzahl","zahlen","gewinn","verlust","abweichung","finanzen","controlling","wirtschaftlich","einnahmen","ausgaben","rechnung","preis","tarif","analyse","ebitda"];
+    const filialen = ["filiale","standort","filialen","personal","öffnungszeit","sortiment","café","produktion","mitarbeiter","schicht","verkauf","laden","geschäft","performance","kundenfeedback","food waste"];
+    const admin = ["reklamation","dokument","vorlage","brief","kommunikation","termin","organisation","ablauf","digitalisierung","prozess","email","e-mail","schreiben","formulierung"];
 
     const scoreC = controlling.filter((w) => t.includes(w)).length;
     const scoreF = filialen.filter((w) => t.includes(w)).length;
     const scoreA = admin.filter((w) => t.includes(w)).length;
 
-    if (scoreC >= scoreF && scoreC >= scoreA && scoreC > 0)
-      return { agent: "controlling", grund: "Finanzbezogene Anfrage → Lorena" };
-    if (scoreF >= scoreC && scoreF >= scoreA && scoreF > 0)
-      return { agent: "filialen", grund: "Filialbezogene Anfrage → Sabrina" };
-    if (scoreA > 0)
-      return { agent: "admin", grund: "Administrative Anfrage → Mirjam" };
-    return { agent: "admin", grund: "Allgemeine Anfrage → Mirjam" };
+    // Nur weiterleiten wenn MINDESTENS 1 Keyword gefunden wird
+    if (scoreC >= 1 && scoreC > scoreF && scoreC > scoreA)
+      return { agent: "controlling", shouldRoute: true, grund: "Weiterleitung zu Lorena (Controlling)" };
+    if (scoreF >= 1 && scoreF > scoreC && scoreF > scoreA)
+      return { agent: "filialen", shouldRoute: true, grund: "Weiterleitung zu Sabrina (Filialmanagement)" };
+    if (scoreA >= 1 && scoreA > scoreC && scoreA > scoreF)
+      return { agent: "admin", shouldRoute: true, grund: "Weiterleitung zu Mirjam (Administration)" };
+    
+    // ALLES ANDERE → Leon antwortet
+    return { agent: "orchestrator", shouldRoute: false, grund: null };
   }
 
   async function callClaude(systemPrompt: string, history: any[]) {
@@ -153,7 +178,7 @@ export default function AgentSystem() {
     try {
       const routing = routeMessage(userText);
       setActiveAgent(routing.agent);
-      setRoutingInfo(routing.grund);
+      if (routing.grund) setRoutingInfo(routing.grund);
 
       const agent = AGENTS[routing.agent as keyof typeof AGENTS];
       const answer = await callClaude(agent.systemPrompt, updatedHistory);
@@ -232,12 +257,12 @@ export default function AgentSystem() {
             </div>
             <div style={s.emptyTitle}>Willkommen bei Leon</div>
             <div style={s.emptySub}>
-              Ich bin der Orchestrator. Ich leite Ihre Anfrage automatisch an Lorena, Sabrina oder Mirjam weiter.
+              Ich bin Ihre zentrale Ansprechsperson. Ich beantwortete Ihre Fragen direkt oder leite Sie an das spezialisierte Team weiter.
             </div>
             <div style={s.exampleGrid}>
               {[
+                "Wer ist Lorena und was macht sie?",
                 "Wie entwickelt sich unser Food Waste diese Woche?",
-                "Welche Filiale hat den tiefsten Umsatz im April?",
                 "Kannst du eine Reklamationsvorlage erstellen?",
               ].map((ex) => (
                 <div key={ex} style={s.example} onClick={() => setInput(ex)}>
@@ -288,8 +313,8 @@ export default function AgentSystem() {
               <div style={s.agentHeader}>
                 <img src={ag.image} alt={ag.name} style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${ag.accent}` }} />
                 <div>
-                  <span style={{ ...s.agentName, color: ag.accent }}>{activeAgent ? ag.name : "Leon"}</span>
-                  <span style={s.agentRole}>{activeAgent ? ` · ${ag.role}` : " · analysiert..."}</span>
+                  <span style={{ ...s.agentName, color: ag.accent }}>{ag.name}</span>
+                  <span style={s.agentRole}>{activeAgent !== "orchestrator" ? ` · ${ag.role}` : " · analysiert..."}</span>
                   {routingInfo && <div style={s.agentGrund}>{routingInfo}</div>}
                 </div>
               </div>
@@ -307,7 +332,7 @@ export default function AgentSystem() {
 
       {/* Input */}
       <div style={s.inputArea}>
-        <textarea style={s.textarea} placeholder="Stellen Sie Ihre Frage an das Team..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={2} />
+        <textarea style={s.textarea} placeholder="Stellen Sie Ihre Frage an Leon..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={2} />
         <button style={{ ...s.sendBtn, opacity: loading || !input.trim() ? 0.5 : 1, cursor: loading || !input.trim() ? "not-allowed" : "pointer" }} onClick={handleSend} disabled={loading || !input.trim()}>
           ↑
         </button>
