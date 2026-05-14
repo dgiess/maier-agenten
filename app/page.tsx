@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 
 const GLOBAL_CONTEXT = `
 Du arbeitest als internes KI-System der Rolf Maier & Co AG.
-REGEL: Arbeite DIREKT mit verfügbaren Daten. Stelle keine weiteren Fragen. Analysiere und liefere konkrete Ergebnisse.
+REGEL: Arbeite DIREKT mit verfügbaren Daten. Stelle KEINE unnötigen Fragen. Analysiere und liefere konkrete Ergebnisse.
 SPRACHE: Schweizer Hochdeutsch, niemals ß, kurz und präzise.
 `;
 
@@ -26,12 +26,33 @@ WICHTIG: KEINE Fragen! Arbeite mit den Daten die vorhanden sind. Sei pragmatisch
 
 const ALEX_SYSTEM = `${GLOBAL_CONTEXT}
 Du bist Alex, Catering-Spezialistin. AUFGABE:
-1. Analysiere Catering-Anfragen (Personen, Anlass, Datum, Budget, Niveau)
-2. Erstelle strukturierte Text-Offerte mit Varianten
-3. Extrahiere Daten automatisch für HTML-Offerte
-4. KEINE langen Erklärungen, nur konkrete Offerten
 
-WICHTIG: Arbeite schnell und effizient. Nutze echte Shop-Preise.`;
+PHASE 1 - ANFRAGE VERSTEHEN:
+1. Der Kunde macht eine Catering-Anfrage
+2. Du fragst gezielt nach: Anzahl Personen, Anlass, Budget, Datum, Niveau (einfach/standard/premium)
+3. KEINE unnötigen Fragen - nur die wichtigsten 5
+
+PHASE 2 - VARIANTEN ERSTELLEN:
+1. Basierend auf den Infos: Erstelle 2-3 konkrete Varianten (EINFACH, STANDARD, PREMIUM)
+2. Schreibe jede Variante strukturiert mit:
+   - Name & Beschreibung
+   - Produkte mit Mengen
+   - Preis pro Person & Gesamtpreis
+   - Besonderheiten
+3. Format: **Variante 1: EINFACH**, **Variante 2: STANDARD**, **Variante 3: PREMIUM**
+4. Sage dem Kunden: "Schreiben Sie 'Variante 1', 'Variante 2' oder 'Variante 3' um die HTML-Offerte zu generieren"
+
+PHASE 3 - HTML-OFFERTE GENERIEREN:
+1. Wenn Kunde "Variante X" schreibt:
+2. Extrahiere die Daten aus der gewählten Variante
+3. Generiere HTML-Offerte mit den exakten Produkten & Preisen
+4. Zeige Download-Button
+
+WICHTIG:
+- Phase 1 & 2: Stelle Fragen und erstelle Vorschläge (normal conversational)
+- Phase 3: Automatische HTML-Generierung (keine neuen Fragen)
+- Nutze immer echte Shop-Preise
+- Sei verkaufsorientiert aber nicht aufdringlich`;
 
 const MIRJAM_SYSTEM = `${GLOBAL_CONTEXT}
 Du bist Mirjam, Administration-Spezialistin. AUFGABE:
@@ -39,7 +60,7 @@ Du bist Mirjam, Administration-Spezialistin. AUFGABE:
 2. Erstelle professionelle Antworten basierend auf OneDrive-Vorlagen
 3. Sei strukturiert, freundlich, professionell
 
-WICHTIG: KEINE Fragen stellen. Nutze die Vorlagen direkt.`;
+WICHTIG: Stelle Fragen wenn nötig. Nutze die Vorlagen direkt.`;
 
 const LEON_SYSTEM = `${GLOBAL_CONTEXT}
 Du bist Leon, zentrale Ansprechsperson und Orchestrator. Du antwortest auf ALLE Fragen.
@@ -149,6 +170,7 @@ export default function AgentSystem() {
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
   const [shopData, setShopData] = useState<any[]>([]);
   const [oneDriveData, setOneDriveData] = useState<{ [key: string]: any }>({});
+  const [cateringVariants, setCateringVariants] = useState<any[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -223,11 +245,11 @@ export default function AgentSystem() {
       oneDriveData[agentId].forEach((file: any) => {
         enhancedPrompt += `\n[${file.name}]:\n${file.content}\n`;
       });
-      enhancedPrompt += `\nARBEITE DIREKT MIT DIESEN DATEN. STELLE KEINE FRAGEN!`;
+      enhancedPrompt += `\nARBEITE DIREKT MIT DIESEN DATEN. STELLE KEINE UNNÖTIGEN FRAGEN!`;
     }
 
     if (agent?.useShopData && shopData.length > 0) {
-      enhancedPrompt += `\n\nSHOP-PRODUKTE:\n${JSON.stringify(shopData.slice(0, 15), null, 2)}`;
+      enhancedPrompt += `\n\nSHOP-PRODUKTE (verwende echte Preise):\n${JSON.stringify(shopData.slice(0, 15), null, 2)}`;
     }
 
     const response = await fetch("/api/chat", {
@@ -276,6 +298,23 @@ export default function AgentSystem() {
     }
   }
 
+  function extractVariantData(userText: string): any | null {
+    const text = userText.toLowerCase();
+    
+    // Check if user selected a variant
+    if (text.includes("variante 1") || text.includes("einfach")) {
+      return cateringVariants[0] || null;
+    }
+    if (text.includes("variante 2") || text.includes("standard")) {
+      return cateringVariants[1] || null;
+    }
+    if (text.includes("variante 3") || text.includes("premium")) {
+      return cateringVariants[2] || null;
+    }
+    
+    return null;
+  }
+
   async function handleSend() {
     if (!input.trim() || loading) return;
     const userText = input.trim();
@@ -298,38 +337,56 @@ export default function AgentSystem() {
 
       const answer = await callClaude(agent.systemPrompt, updatedHistory, routing.agent);
 
+      // Extract variants if Alex is responding and mentions Variante
+      if (routing.agent === "catering" && answer.includes("Variante")) {
+        const variants = [];
+        const variantMatches = answer.match(/\*\*Variante \d+.*?\*\*([\s\S]*?)(?=\*\*Variante|\n\n|$)/g);
+        if (variantMatches) {
+          variantMatches.forEach((match, idx) => {
+            variants.push({
+              name: `Variante ${idx + 1}`,
+              description: match.substring(0, 200),
+              fullText: match,
+              index: idx,
+            });
+          });
+          setCateringVariants(variants);
+        }
+      }
+
+      // Check if user selected a variant
+      let offerData = null;
+      const selectedVariant = extractVariantData(userText);
+      if (routing.agent === "catering" && selectedVariant && cateringVariants.length > 0) {
+        // Generate HTML offer based on selected variant
+        const variantNumber = selectedVariant.index + 1;
+        const extractedData = {
+          anlass: "Catering-Veranstaltung",
+          anzahlPersonen: 20,
+          datum: new Date().toLocaleDateString("de-CH"),
+          varianten: [
+            {
+              name: `Variante ${variantNumber}`,
+              pricePerPerson: 25,
+              items: [
+                { name: "Gebäck & Brote", quantity: 1, price: 8 },
+                { name: "Belag & Käse", quantity: 1, price: 12 },
+                { name: "Getränke", quantity: 1, price: 5 },
+              ],
+              description: selectedVariant.description,
+            },
+          ],
+          organizatorisch: { Lieferung: "Selbstabholung", Zeitpunkt: "Nach Absprache" },
+        };
+        offerData = await generateCateringOffer(extractedData);
+      }
+
       setConversationHistory([...updatedHistory, { role: "assistant", content: answer }]);
 
       let reportData = null;
-      let offerData = null;
-
       if (agent?.canGenerateReports && oneDriveData[routing.agent]?.length > 0) {
         const pdfContent = oneDriveData[routing.agent].map((f: any) => `${f.name}: ${f.content}`).join("\n\n");
         reportData = await generateReport(routing.agent, pdfContent);
-      }
-
-      if (agent?.canGenerateOffers && routing.agent === "catering") {
-        const offerMatch = answer.match(/CHF (\d+(?:'\d{3})*(?:\.\d{2})?)/);
-        if (offerMatch || answer.toLowerCase().includes("variante")) {
-          const extractedData = {
-            anlass: "Catering-Veranstaltung",
-            anzahlPersonen: 20,
-            datum: new Date().toLocaleDateString("de-CH"),
-            varianten: [
-              {
-                name: "Standard",
-                pricePerPerson: 25,
-                items: [
-                  { name: "Gebäck & Brote", quantity: 1, price: 8 },
-                  { name: "Belag & Käse", quantity: 1, price: 12 },
-                  { name: "Getränke", quantity: 1, price: 5 },
-                ],
-              },
-            ],
-            organizatorisch: { Lieferung: "Selbstabholung", Zeitpunkt: "Nach Absprache" },
-          };
-          offerData = await generateCateringOffer(extractedData);
-        }
       }
 
       setMessages((prev) => [
@@ -348,6 +405,7 @@ export default function AgentSystem() {
   function handleClear() {
     setMessages([]);
     setConversationHistory([]);
+    setCateringVariants([]);
   }
 
   function handleDownload(data: any) {
@@ -423,7 +481,7 @@ export default function AgentSystem() {
           <div style={{ margin: "auto", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: "16px" }}>
             <img src="/leon.png" alt="Leon" style={{ width: 100, height: 100, borderRadius: "50%", objectFit: "cover", border: "4px solid #D4A574" }} />
             <div style={{ fontSize: "24px", fontWeight: "700", color: COLORS.primary }}>Willkommen</div>
-            <div style={{ color: COLORS.text, opacity: 0.7, fontSize: "14px" }}>Fragen Sie nach: Controlling Report, Filialanalyse, Catering-Offerte, Reklamation</div>
+            <div style={{ color: COLORS.text, opacity: 0.7", fontSize: "14px" }}>Fragen Sie nach: Controlling Report, Filialanalyse, Catering-Offerte, Reklamation</div>
           </div>
         )}
 
@@ -490,7 +548,7 @@ export default function AgentSystem() {
       </div>
 
       <div style={{ padding: "18px 28px", borderTop: `3px solid ${COLORS.accent}`, background: "white", display: "flex", gap: "14px", alignItems: "flex-end" }}>
-        <textarea style={{ flex: 1, background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "12px", padding: "12px 16px", color: COLORS.text, fontSize: "14px", lineHeight: "1.5", maxHeight: "120px", fontFamily: "Georgia, serif" }} placeholder="z.B. 'Controlling Report' oder 'Catering für 30 Personen'" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={2} />
+        <textarea style={{ flex: 1, background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "12px", padding: "12px 16px", color: COLORS.text, fontSize: "14px", lineHeight: "1.5", maxHeight: "120px", fontFamily: "Georgia, serif" }} placeholder="z.B. 'Catering für 30 Personen' oder 'Variante 1' für HTML-Offerte" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={2} />
         <button style={{ width: "44px", height: "44px", background: COLORS.primary, color: "white", border: "none", borderRadius: "8px", fontSize: "18px", fontWeight: "700", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, cursor: "pointer", opacity: loading || !input.trim() ? 0.5 : 1 }} onClick={handleSend} disabled={loading || !input.trim()}>↑</button>
       </div>
 
