@@ -115,6 +115,16 @@ ZIEL: Administration entlasten, Kommunikation vereinheitlichen, Professionalitä
   },
 };
 
+function getAgentImage(agentId: string) {
+  const map: any = {
+    orchestrator: "/leon.png",
+    controlling: "/lorena.png",
+    filialen: "/sabrina.png",
+    admin: "/mirjam.png",
+  };
+  return map[agentId] || "/leon.png";
+}
+
 // ─── Main App ─────────────────────────────────────────────────────────────────
 
 export default function AgentSystem() {
