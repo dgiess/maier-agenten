@@ -11,46 +11,51 @@ KOMMUNIKATIONSREGELN (immer einhalten):
 - Professionell, sachlich, direkt
 `;
 
+const LORENA_SYSTEM = `${GLOBAL_CONTEXT}
+Du bist Lorena, Finanz- und Controlling-Spezialistin. Du kannst:
+1. PDFs aus OneDrive (Controlling-Ordner) analysieren
+2. Kostenanalysen durchführen
+3. HTML-Reports generieren mit Diagrammen und Tabellen
+
+WENN User PDF-Analyse anfordert:
+- Extrahiere Daten aus der PDF
+- Analysiere Kosten, Marge, Kennzahlen
+- Generiere strukturierten HTML-Report zum Download
+- Gib konkrete Empfehlungen
+
+REPORT-STRUKTUR:
+- KPIs (Umsatz, Wachstum, Kosten, Marge)
+- Kostenentwicklung (Tabellen)
+- Finanzielle Kennzahlen
+- Empfehlungen & Risiken`;
+
+const SABRINA_SYSTEM = `${GLOBAL_CONTEXT}
+Du bist Sabrina, Filialmanagement-Spezialistin. Du kannst:
+1. PDFs aus OneDrive (Filialmanagement-Ordner) analysieren
+2. Filial-Performance analysieren
+3. HTML-Reports generieren mit Rankings und Tabellen
+
+WENN User PDF-Analyse anfordert:
+- Extrahiere Daten aus der PDF
+- Analysiere Filial-Performance, Umsatz, Retouren
+- Generiere strukturierten HTML-Report zum Download
+- Gib konkrete Optimierungsvorschläge
+
+REPORT-STRUKTUR:
+- KPIs (Filialen, Umsatz, Retouren, Leistung)
+- Top/Bottom Rankings
+- Detailtabelle aller Filialen
+- Optimierungsvorschläge`;
+
 const ALEX_SYSTEM = `Du bist Alex, die Catering- und Event-Spezialistin der Beck Maier & Co AG. Du hast Zugriff auf:
 1. Shop-Produkte mit echten Preisen
-2. OneDrive Daten aus dem Catering-Ordner (Kundenprofile, spezielle Anfragen)
+2. OneDrive Daten aus dem Catering-Ordner
 
-WENN Catering-Anfrage: Frag (falls nötig) Anzahl Personen, Anlass, Budget, Tageszeit, Niveau. Erstelle dann professionelle Offerte mit Markdown-Formatierung.
-
-OFFERTEN-FORMAT:
----
-📋 Offerte: [ANLASS] | [ANZAHL] Personen | [TAGESZEIT]
-Herzlichen Dank für Ihre Anfrage! Hier ist mein Vorschlag:
----
-💡 Variante: [NAME] (CHF [PREIS] pro Person)
-Was ist enthalten:
-| Produkt | Anzahl | Stückpreis | Total |
-|---------|--------|-----------|-------|
-| [Produkt 1] | [Menge] | CHF [X.XX] | CHF [Total] |
-...
-| TOTAL | | | CHF [GESAMTBETRAG] |
----
-✨ Optional: 🥤 [Getränke] — CHF [X.XX], 🍰 [Dessert] — CHF [X.XX]
----
-📍 Organisatorisches: Lieferung, Zeitpunkt, Aufbau, Besonderheiten
----
-🎯 Nächste Schritte: Gefällt das Angebot? Gerne anpassen!
----
-
-WICHTIG: Nutze ECHTE Shop-Produkte und Preise. Biete 2-3 Varianten. Bleib realistisch und verkaufsorientiert.`;
+WENN Catering-Anfrage: Frag (falls nötig) Anzahl Personen, Anlass, Budget, Tageszeit, Niveau. Erstelle dann professionelle Offerte.`;
 
 const LEON_SYSTEM = `${GLOBAL_CONTEXT}
 Du bist Leon, zentrale Ansprechsperson und Orchestrator. Du antwortest auf ALLE Fragen.
-ALLGEMEINE/TEAM-FRAGEN: Du antwortest selbst.
-SPEZIFISCHE FACHFRAGEN: Du leitest weiter.
-
-DEIN TEAM:
-- Lorena (Controlling): Finanzen, Kennzahlen, Daten aus OneDrive Controlling-Ordner
-- Sabrina (Filialmanagement): Operative Themen, Filial-Daten aus OneDrive
-- Mirjam (Administration): Kommunikation, Vorlagen aus OneDrive Admin-Ordner
-- Alex (Catering): Catering-Offerten, Shop-Daten, Kundenprofile aus OneDrive
-
-ROUTING: catering/offerte/event → Alex | umsatz/kosten/zahlen → Lorena | filiale/food waste → Sabrina | reklamation/brief → Mirjam | SONST → du`;
+ROUTING: catering/offerte/event → Alex | kosten/controlling/analyse → Lorena | filiale/performance → Sabrina | reklamation/brief → Mirjam | SONST → du`;
 
 type AgentConfig = {
   id: string;
@@ -62,68 +67,16 @@ type AgentConfig = {
   systemPrompt: string;
   useShopData?: boolean;
   useOneDrive?: boolean;
+  canGenerateReports?: boolean;
+  reportType?: string;
 };
 
 const AGENTS: { [key: string]: AgentConfig } = {
-  orchestrator: {
-    id: "orchestrator",
-    name: "Leon",
-    role: "Orchestrator",
-    animal: "Löwe",
-    accent: "#D4A574",
-    image: "/leon.png",
-    systemPrompt: LEON_SYSTEM,
-  },
-  catering: {
-    id: "catering",
-    name: "Alex",
-    role: "Catering & Events",
-    animal: "Eichhörnchen-Dame",
-    accent: "#C4A87C",
-    image: "/Alex.png",
-    systemPrompt: ALEX_SYSTEM,
-    useShopData: true,
-    useOneDrive: true,
-  },
-  controlling: {
-    id: "controlling",
-    name: "Lorena",
-    role: "Controlling",
-    animal: "Füchsin",
-    accent: "#8B7355",
-    image: "/lorena.png",
-    systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Lorena, Finanz-Spezialistin. Du analysierst Finanzen, Kennzahlen, Kostenentwicklungen mit Daten aus OneDrive.
-ARBEITSWEISE: Analytisch, kritisch, faktenbasiert.
-ZIEL: Transparenz, Risiken früh erkennen.`,
-    useOneDrive: true,
-  },
-  filialen: {
-    id: "filialen",
-    name: "Sabrina",
-    role: "Filialmanagement",
-    animal: "Reh-Dame",
-    accent: "#A89968",
-    image: "/sabrina.png",
-    systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Sabrina, Filialmanagement-Spezialistin. Du analysierst Filialperformance, operative Themen mit Daten aus OneDrive.
-ARBEITSWEISE: Praxisorientiert, analytisch, lösungsorientiert.
-ZIEL: Filialen verbessern, Prozesse optimieren.`,
-    useOneDrive: true,
-  },
-  admin: {
-    id: "admin",
-    name: "Mirjam",
-    role: "Administration",
-    animal: "Hasen-Dame",
-    accent: "#B8956A",
-    image: "/mirjam.png",
-    systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Mirjam, Administration- und Kommunikations-Spezialistin. Du erstellst Briefe, bearbeitest Reklamationen, verwendest Vorlagen aus OneDrive.
-ARBEITSWEISE: Strukturiert, freundlich, professionell.
-ZIEL: Administration entlasten, Kommunikation vereinheitlichen.`,
-    useOneDrive: true,
-  },
+  orchestrator: { id: "orchestrator", name: "Leon", role: "Orchestrator", animal: "Löwe", accent: "#D4A574", image: "/leon.png", systemPrompt: LEON_SYSTEM },
+  catering: { id: "catering", name: "Alex", role: "Catering & Events", animal: "Eichhörnchen-Dame", accent: "#C4A87C", image: "/Alex.png", systemPrompt: ALEX_SYSTEM, useShopData: true, useOneDrive: true },
+  controlling: { id: "controlling", name: "Lorena", role: "Controlling", animal: "Füchsin", accent: "#8B7355", image: "/lorena.png", systemPrompt: LORENA_SYSTEM, useOneDrive: true, canGenerateReports: true, reportType: "controlling" },
+  filialen: { id: "filialen", name: "Sabrina", role: "Filialmanagement", animal: "Reh-Dame", accent: "#A89968", image: "/sabrina.png", systemPrompt: SABRINA_SYSTEM, useOneDrive: true, canGenerateReports: true, reportType: "filialmanagement" },
+  admin: { id: "admin", name: "Mirjam", role: "Administration", animal: "Hasen-Dame", accent: "#B8956A", image: "/mirjam.png", systemPrompt: `${GLOBAL_CONTEXT}Du bist Mirjam, Administration- und Kommunikations-Spezialistin.`, useOneDrive: true },
 };
 
 const CORRECT_PASSWORD = "BeckMaier2024";
@@ -149,19 +102,15 @@ export default function AgentSystem() {
 
   useEffect(() => {
     if (!isLoggedIn) return;
-
     async function loadShopData() {
       try {
         const response = await fetch("/api/shop");
         const data = await response.json();
-        if (data.success) {
-          setShopData(data.products);
-        }
+        if (data.success) setShopData(data.products);
       } catch (error) {
         console.error("Shop data error:", error);
       }
     }
-
     loadShopData();
   }, [isLoggedIn]);
 
@@ -170,10 +119,7 @@ export default function AgentSystem() {
       const response = await fetch(`/api/onedrive?agent=${agentId}`);
       const data = await response.json();
       if (data.success) {
-        setOneDriveData((prev) => ({
-          ...prev,
-          [agentId]: data.files,
-        }));
+        setOneDriveData((prev) => ({ ...prev, [agentId]: data.files }));
       }
     } catch (error) {
       console.error("OneDrive data error:", error);
@@ -202,9 +148,9 @@ export default function AgentSystem() {
 
   function routeMessage(text: string) {
     const t = text.toLowerCase();
-    const catering = ["catering", "offerte", "event", "hochzeit", "geburtstag", "apéro", "brunch"];
-    const controlling = ["umsatz", "kosten", "budget", "marge", "kennzahl", "zahlen"];
-    const filialen = ["filiale", "standort", "food waste", "performance"];
+    const catering = ["catering", "offerte", "event", "hochzeit", "geburtstag", "apéro"];
+    const controlling = ["umsatz", "kosten", "budget", "controlling", "analyse", "kostenanalyse", "kennzahl"];
+    const filialen = ["filiale", "standort", "food waste", "performance", "filialanalyse"];
     const admin = ["reklamation", "dokument", "vorlage", "brief"];
 
     const scoreC = catering.filter((w) => t.includes(w)).length;
@@ -229,14 +175,13 @@ export default function AgentSystem() {
     const agent = AGENTS[agentId];
 
     if (agent?.useShopData && shopData.length > 0) {
-      enhancedPrompt += `\n\nSHOP-PRODUKTE MIT AKTUELLEN PREISEN:\n`;
-      enhancedPrompt += `\`\`\`\n${JSON.stringify(shopData.slice(0, 20), null, 2)}\n\`\`\``;
+      enhancedPrompt += `\n\nSHOP-PRODUKTE:\n${JSON.stringify(shopData.slice(0, 20), null, 2)}`;
     }
 
     if (agent?.useOneDrive && oneDriveData[agentId]) {
-      enhancedPrompt += `\n\nONEDRIVE DATEN (${agentId}):\n`;
+      enhancedPrompt += `\n\nONEDRIVE DATEIEN:\n`;
       oneDriveData[agentId].forEach((file: any) => {
-        enhancedPrompt += `\n---\nDATEI: ${file.name}\n${file.content.substring(0, 1000)}\n---`;
+        enhancedPrompt += `\n[${file.name}]: ${file.content.substring(0, 800)}\n`;
       });
     }
 
@@ -248,6 +193,28 @@ export default function AgentSystem() {
     const data = await response.json();
     if (data.error) throw new Error(data.error);
     return data.content;
+  }
+
+  async function generateReport(agentId: string, pdfContent: string) {
+    const agent = AGENTS[agentId];
+    if (!agent?.canGenerateReports) return null;
+
+    try {
+      const response = await fetch("/api/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pdfContent,
+          reportType: agent.reportType,
+          agentName: agent.name,
+        }),
+      });
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error("Report generation error:", error);
+      return null;
+    }
   }
 
   async function handleSend() {
@@ -273,15 +240,20 @@ export default function AgentSystem() {
       const answer = await callClaude(agent.systemPrompt, updatedHistory, routing.agent);
 
       setConversationHistory([...updatedHistory, { role: "assistant", content: answer }]);
+      
+      // Check if report should be generated
+      let reportData = null;
+      if (agent?.canGenerateReports && oneDriveData[routing.agent]?.length > 0) {
+        const pdfContent = oneDriveData[routing.agent].map((f: any) => `${f.name}: ${f.content}`).join("\n\n");
+        reportData = await generateReport(routing.agent, pdfContent);
+      }
+
       setMessages((prev) => [
         ...prev,
-        { role: "assistant", text: answer, agent: routing.agent, grund: routing.grund },
+        { role: "assistant", text: answer, agent: routing.agent, grund: routing.grund, reportData },
       ]);
     } catch (err: any) {
-      setMessages((prev) => [
-        ...prev,
-        { role: "assistant", text: `Fehler: ${err.message}`, agent: "error" },
-      ]);
+      setMessages((prev) => [...prev, { role: "assistant", text: `Fehler: ${err.message}`, agent: "error" }]);
     }
 
     setLoading(false);
@@ -292,6 +264,18 @@ export default function AgentSystem() {
   function handleClear() {
     setMessages([]);
     setConversationHistory([]);
+  }
+
+  function handleDownloadReport(reportData: any) {
+    const blob = new Blob([reportData.html], { type: "text/html" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = reportData.filename;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    document.body.removeChild(a);
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
@@ -308,21 +292,11 @@ export default function AgentSystem() {
           <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 80, objectFit: "contain", marginBottom: "20px" }} />
           <div style={s.loginTitle}>Beck Maier & Co AG</div>
           <div style={s.loginSubtitle}>KI-Agentensystem</div>
-          
           <form onSubmit={handleLogin} style={s.loginForm}>
             <label style={s.loginLabel}>Passwort eingeben:</label>
-            <input
-              type="password"
-              value={loginPassword}
-              onChange={(e) => setLoginPassword(e.target.value)}
-              placeholder="Passwort"
-              style={s.loginInput}
-              autoFocus
-            />
+            <input type="password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} placeholder="Passwort" style={s.loginInput} autoFocus />
             {loginError && <div style={s.loginError}>{loginError}</div>}
-            <button type="submit" style={s.loginButton}>
-              Anmelden
-            </button>
+            <button type="submit" style={s.loginButton}>Anmelden</button>
           </form>
         </div>
       </div>
@@ -339,18 +313,28 @@ export default function AgentSystem() {
           <div style={s.headerText}>
             <div style={s.headerTitle}>Beck Maier & Co AG</div>
             <div style={s.tagline}>Gut, Gesund, Genial</div>
-            <div style={s.headerSub}>KI-Agentensystem</div>
+            <div style={s.headerSub}>KI-Agentensystem + Reports</div>
           </div>
         </div>
         <div style={s.teamRow}>
-          <TeamCard agent={AGENTS.orchestrator} isActive={loading && !activeAgent} />
-          <div style={s.divider} />
+          <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "12px", border: `2px solid #D4C5B9`, background: "#F5F1EB", minWidth: "150px" }}>
+            <img src={AGENTS.orchestrator.image} alt="Leon" style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: `2px solid #D4A574` }} />
+            <div>
+              <div style={{ fontWeight: "700", fontSize: "14px", color: "#3D3D3D" }}>{AGENTS.orchestrator.name}</div>
+              <div style={{ fontSize: "11px", color: "#8B6F47" }}>{AGENTS.orchestrator.role}</div>
+            </div>
+          </div>
+          <div style={{ width: "1px", height: "70px", background: "#D4C5B9", margin: "0 8px" }} />
           {specialists.map((a) => (
-            <TeamCard key={a.id} agent={a} isActive={activeAgent === a.id} />
+            <div key={a.id} style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "12px", border: `2px solid #D4C5B9`, background: "#F5F1EB", minWidth: "150px" }}>
+              <img src={a.image} alt={a.name} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: `2px solid ${a.accent}` }} />
+              <div>
+                <div style={{ fontWeight: "700", fontSize: "14px", color: "#3D3D3D" }}>{a.name}</div>
+                <div style={{ fontSize: "11px", color: "#8B6F47" }}>{a.role}</div>
+              </div>
+            </div>
           ))}
-          <button style={s.logoutBtn} onClick={handleLogout}>
-            Abmelden
-          </button>
+          <button style={s.logoutBtn} onClick={handleLogout}>Abmelden</button>
         </div>
       </div>
 
@@ -358,27 +342,16 @@ export default function AgentSystem() {
         <div style={s.memoryBar}>
           <span style={s.memoryDot} />
           <span style={s.memoryText}>{Math.floor(conversationHistory.length / 2)} Nachrichten</span>
-          <button style={s.clearBtn} onClick={handleClear}>
-            Neu starten
-          </button>
+          <button style={s.clearBtn} onClick={handleClear}>Neu starten</button>
         </div>
       )}
 
       <div style={s.messages}>
         {messages.length === 0 && (
           <div style={s.empty}>
-            <div style={s.emptyIcon}>
-              <img src="/leon.png" alt="Leon" style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "4px solid #D4A574" }} />
-            </div>
+            <img src="/leon.png" alt="Leon" style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: "4px solid #D4A574" }} />
             <div style={s.emptyTitle}>Willkommen bei Leon</div>
-            <div style={s.emptySub}>Ich bin Ihre zentrale Ansprechsperson und habe Zugriff auf Shop-Daten und OneDrive-Dokumente.</div>
-            <div style={s.exampleGrid}>
-              {["Ich brauche Catering für 30 Personen", "Wie ist unsere aktuelle Kostenentwicklung?", "Erstelle eine Reklamationsvorlage"].map((ex) => (
-                <div key={ex} style={s.example} onClick={() => setInput(ex)}>
-                  {ex}
-                </div>
-              ))}
-            </div>
+            <div style={s.emptySub}>Mit OneDrive-Integration und automatischen HTML-Reports für Lorena und Sabrina.</div>
           </div>
         )}
 
@@ -411,28 +384,32 @@ export default function AgentSystem() {
                   </span>
                 ))}
               </div>
+              {msg.reportData && (
+                <button
+                  onClick={() => handleDownloadReport(msg.reportData)}
+                  style={{ marginTop: "10px", padding: "8px 16px", background: ag?.accent, color: "white", border: "none", borderRadius: "6px", cursor: "pointer", fontSize: "12px", fontWeight: "600" }}
+                >
+                  📥 Report downloaden: {msg.reportData.filename}
+                </button>
+              )}
             </div>
           );
         })}
 
-        {loading && (() => {
-          const ag = AGENTS[activeAgent || "orchestrator"];
-          return (
-            <div style={s.assistantRow}>
-              <div style={s.agentHeader}>
-                <img src={ag.image} alt={ag.name} style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${ag.accent}` }} />
-                <div>
-                  <span style={{ ...s.agentName, color: ag.accent }}>{ag.name}</span>
-                  <span style={s.agentRole}>{activeAgent !== "orchestrator" ? ` · ${ag.role}` : " · lädt Daten..."}</span>
-                  {routingInfo && <div style={s.agentGrund}>{routingInfo}</div>}
-                </div>
-              </div>
-              <div style={s.loadingBubble}>
-                <span style={s.dot} /><span style={{ ...s.dot, animationDelay: "0.2s" }} /><span style={{ ...s.dot, animationDelay: "0.4s" }} />
+        {loading && (
+          <div style={s.assistantRow}>
+            <div style={s.agentHeader}>
+              <img src={AGENTS[activeAgent || "orchestrator"].image} alt="Agent" style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${AGENTS[activeAgent || "orchestrator"].accent}` }} />
+              <div>
+                <span style={{ fontWeight: "700", fontSize: "15px", color: AGENTS[activeAgent || "orchestrator"].accent }}>{AGENTS[activeAgent || "orchestrator"].name}</span>
+                {routingInfo && <div style={s.agentGrund}>{routingInfo}</div>}
               </div>
             </div>
-          );
-        })()}
+            <div style={s.loadingBubble}>
+              <span style={s.dot} /><span style={{ ...s.dot, animationDelay: "0.2s" }} /><span style={{ ...s.dot, animationDelay: "0.4s" }} />
+            </div>
+          </div>
+        )}
 
         <div ref={bottomRef} />
       </div>
@@ -440,22 +417,6 @@ export default function AgentSystem() {
       <div style={s.inputArea}>
         <textarea style={s.textarea} placeholder="Stellen Sie Ihre Frage an Leon..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={2} />
         <button style={{ ...s.sendBtn, opacity: loading || !input.trim() ? 0.5 : 1 }} onClick={handleSend} disabled={loading || !input.trim()}>↑</button>
-      </div>
-    </div>
-  );
-}
-
-function TeamCard({ agent, isActive }: { agent: AgentConfig; isActive: boolean }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "12px 16px", borderRadius: "12px", border: `2px solid ${isActive ? agent.accent : "#D4C5B9"}`, background: isActive ? `${agent.accent}15` : "#F5F1EB", transform: isActive ? "scale(1.05)" : "scale(1)", transition: "all 0.25s ease", minWidth: "150px" }}>
-      <div style={{ position: "relative", flexShrink: 0 }}>
-        <img src={agent.image} alt={agent.name} style={{ width: 56, height: 56, borderRadius: "50%", objectFit: "cover", border: `2px solid ${agent.accent}` }} />
-        {isActive && <div style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: "50%", background: agent.accent, border: "2px solid white" }} />}
-      </div>
-      <div>
-        <div style={{ fontWeight: "700", fontSize: "14px", color: isActive ? agent.accent : "#3D3D3D" }}>{agent.name}</div>
-        <div style={{ fontSize: "11px", color: "#8B6F47", fontFamily: "Georgia, serif" }}>{agent.role}</div>
-        <div style={{ fontSize: "10px", color: "#3D3D3D", fontStyle: "italic", opacity: 0.7 }}>{agent.animal}</div>
       </div>
     </div>
   );
@@ -482,18 +443,14 @@ const s = {
   headerSub: { fontSize: "12px", color: COLORS.text, opacity: 0.6 },
   teamRow: { display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" as const },
   logoutBtn: { background: "white", border: `2px solid ${COLORS.border}`, borderRadius: "8px", color: COLORS.primary, padding: "8px 16px", fontSize: "12px", cursor: "pointer", fontWeight: "600" },
-  divider: { width: "1px", height: "70px", background: COLORS.border, margin: "0 8px" },
   memoryBar: { display: "flex", alignItems: "center", gap: "12px", padding: "10px 28px", background: COLORS.light, borderBottom: `1px solid ${COLORS.border}`, fontSize: "13px" },
   memoryDot: { width: "8px", height: "8px", background: COLORS.accent, borderRadius: "50%", display: "inline-block" },
   memoryText: { color: COLORS.text, opacity: 0.7 },
   clearBtn: { background: "white", border: `1px solid ${COLORS.border}`, borderRadius: "6px", color: COLORS.primary, padding: "4px 12px", fontSize: "12px", cursor: "pointer", fontWeight: "600" },
   messages: { flex: 1, overflowY: "auto" as const, padding: "32px", display: "flex", flexDirection: "column" as const, gap: "28px" },
-  empty: { margin: "auto", textAlign: "center" as const, maxWidth: "500px", padding: "40px 0", display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "16px" },
-  emptyIcon: { fontSize: "48px" },
+  empty: { margin: "auto", textAlign: "center" as const, display: "flex", flexDirection: "column" as const, alignItems: "center", gap: "16px" },
   emptyTitle: { fontSize: "28px", fontWeight: "700", color: COLORS.primary },
   emptySub: { color: COLORS.text, lineHeight: "1.8", fontSize: "15px", opacity: 0.8 },
-  exampleGrid: { display: "flex", flexDirection: "column" as const, gap: "10px", width: "100%", marginTop: "16px" },
-  example: { padding: "14px 18px", background: COLORS.light, border: `2px solid ${COLORS.border}`, borderRadius: "10px", cursor: "pointer", color: COLORS.text, fontSize: "14px", textAlign: "left" as const },
   userRow: { display: "flex", justifyContent: "flex-end" },
   userBubble: { maxWidth: "75%", background: COLORS.primary, borderRadius: "16px 16px 4px 16px", padding: "14px 18px", lineHeight: "1.7", color: "white", fontSize: "15px" },
   assistantRow: { display: "flex", flexDirection: "column" as const, gap: "10px", maxWidth: "82%" },
