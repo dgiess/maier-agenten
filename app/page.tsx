@@ -1,7 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
 
-```typescript
 const ALEX_SYSTEM = `Du bist Alex, Catering- und Event-Spezialistin der Beck Maier & Co AG.
 
 PRODUKT-KATEGORIEN (nutze echte Beck Maier Produkte):
