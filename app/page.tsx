@@ -369,7 +369,7 @@ export default function AgentSystem() {
               {ag && (
                 <div style={s.agentHeader}>
                   <img
-                    src={`/${ag.id}.png`}
+                    src={getAgentImage(ag.id)}
                     alt={ag.name}
                     style={{
                       width: 38,
@@ -418,7 +418,7 @@ export default function AgentSystem() {
             <div style={s.assistantRow}>
               <div style={s.agentHeader}>
                 <img
-                  src={`/${ag.id}.png`}
+                  src={getAgentImage(ag.id)}
                   alt={ag.name}
                   style={{
                     width: 38,
