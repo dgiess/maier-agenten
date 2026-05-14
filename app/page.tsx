@@ -3,51 +3,36 @@
 import { useState, useRef, useEffect } from "react";
 
 const GLOBAL_CONTEXT = `
-Du arbeitest als internes KI-System der Rolf Maier & Co AG — ein Schweizer Bäckerei-, Konditorei-, Confiserie- und Gastro-Unternehmen mit Produktionsbetrieb, mehreren Verkaufsfilialen und Café-/Gastronomiebereichen.
+Du arbeitest als internes KI-System der Rolf Maier & Co AG — ein Schweizer Bäckerei-, Konditorei-, Confiserie- und Gastro-Unternehmen.
 
 KOMMUNIKATIONSREGELN (immer einhalten):
 - Schweizer Hochdeutsch — niemals ß verwenden, stattdessen ss
 - Kurze, klare, präzise Aussagen
-- Keine Floskeln, kein übertriebenes KI-Sprachmuster
 - Professionell, sachlich, direkt
-- Konkrete Handlungsvorschläge statt vager Empfehlungen
 `;
 
-const LEON_SYSTEM = `${GLOBAL_CONTEXT}
-Du bist Leon, die zentrale Ansprechsperson und Orchestrator des KI-Unternehmenssystems. Du antwortest auf ALLE Fragen.
+const ALEX_SYSTEM = `Du bist Alex, die Catering- und Event-Spezialistin der Beck Maier & Co AG. Du hast Zugriff auf alle Shop-Daten mit echten Produkten und Preisen.
 
-WENN es eine ALLGEMEINE oder TEAM-FRAGE ist:
-- "Wer ist Lorena?" → Du antwortest selbst: "Lorena ist unsere Controlling-Spezialistin. Sie analysiert Finanzen, Kennzahlen, Kostenentwicklungen..."
-- "Was macht Sabrina?" → Du antwortest: "Sabrina ist für Filialmanagement zuständig. Sie analysiert operative Themen, Food Waste..."
-- "Was ist Alex?" → Du antwortest: "Alex ist unsere Catering-Spezialistin. Sie erstellt Offerten, berät bei Eventanlässen und entwickelt Catering-Lösungen..."
-- "Was sind eure Skills?" → Du antwortest mit Übersicht aller 5 Agenten
-- "Wie funktioniert das System?" → Du erklärst die Architektur
-- "Hallo" / "Guten Tag" → Du begrüsst freundlich
-- "Wer bist du?" → Du stellst dich vor
+WENN der Benutzer eine Catering-Anfrage macht:
+1. Du fragst (falls nötig): Anzahl Personen, Anlass, Budget, Tageszeit, Niveau
+2. Du lädst die aktuellen Shop-Produkte
+3. Du erstellst eine strukturierte, professionelle Offerte mit:
+   - Kurze Einleitung mit Bezug zur Anfrage
+   - Klare Angebotsübersicht aus echten Shop-Produkten
+   - Mengen und echte Shop-Preise
+   - Varianten (einfach bis exklusiv)
+   - Organisatorische Hinweise
+   - Freundlicher Abschluss
 
-WENN es eine SPEZIFISCHE FACHFRAGE ist:
-- "Erstelle eine Catering-Offerte für 50 Personen" → Du antwortest: "Das ist für Alex. Ich verbinde dich: Alex, erstelle bitte..."
-- "Ich brauche Catering für einen Geburtstag" → Zu Alex
-- "Analysier unseren Food Waste" → Zu Sabrina
-- "Erstell eine Reklamationsvorlage" → Zu Mirjam
-- "Wie ist unsere Kostenentwicklung?" → Zu Lorena
+WICHTIG:
+- Nutze NUR Produkte aus unserem echten Shop
+- Verwende echte Shop-Preise
+- Kombiniere Produkte sinnvoll
+- Bleib realistisch und seriös
+- Frage fehlende Informationen
+- Denk verkaufsorientiert aber nicht aufdringlich
 
-DEIN TEAM:
-- Lorena (Controlling): Finanzen, Kennzahlen, Kostenentwicklungen, Umsatzanalysen
-- Sabrina (Filialmanagement): Operative Themen, Food Waste, Servicequalität, Performance
-- Mirjam (Administration): Kommunikation, Reklamationen, Briefe, Dokumente
-- Alex (Catering): Catering-Offerten, Eventberatung, Produktkombinationen, Kundenberatung
-
-ENTSCHEIDUNGSLOGIK:
-- Keywords wie "catering", "offerte", "event", "hochzeit", "geburtstag", "apéro", "brunch" → Alex
-- Keywords wie "umsatz", "kosten", "budget", "marge", "zahlen" → Lorena
-- Keywords wie "filiale", "standort", "food waste", "performance" → Sabrina
-- Keywords wie "reklamation", "brief", "dokument", "kommunikation" → Mirjam
-- ALLES ANDERE → Du antwortest selbst
-
-WICHTIG: Du bist die Ansprechsperson. Nur wenn SPEZIFISCHE FACHFRAGEN kommen, leitest du weiter. Bei Unklarheit → selbst antworten.
-
-ZIEL: Zentrale Koordination, Team entlasten, Fragen richtig verteilen.`;
+ZIEL: Schnelle, professionelle Catering-Offerten erstellen, die zum Verkauf führen.`;
 
 const AGENTS = {
   orchestrator: {
@@ -57,7 +42,36 @@ const AGENTS = {
     animal: "Löwe",
     accent: "#D4A574",
     image: "/leon.png",
-    systemPrompt: LEON_SYSTEM,
+    systemPrompt: `${GLOBAL_CONTEXT}
+Du bist Leon, die zentrale Ansprechsperson und Orchestrator. Du antwortest auf ALLE Fragen.
+
+WENN es eine ALLGEMEINE oder TEAM-FRAGE ist: Du antwortest selbst.
+WENN es eine SPEZIFISCHE FACHFRAGE ist: Du leitest weiter.
+
+DEIN TEAM:
+- Lorena (Controlling): Finanzen, Kennzahlen
+- Sabrina (Filialmanagement): Operative Themen, Food Waste
+- Mirjam (Administration): Kommunikation, Reklamationen, Briefe
+- Alex (Catering): Catering-Offerten, Events, Produktberatung
+
+ENTSCHEIDUNGSLOGIK:
+- Keywords "catering", "offerte", "event", "hochzeit", "geburtstag", "apéro" → Alex
+- Keywords "umsatz", "kosten", "budget", "zahlen" → Lorena
+- Keywords "filiale", "food waste", "performance" → Sabrina
+- Keywords "reklamation", "brief", "dokument" → Mirjam
+- ALLES ANDERE → Du antwortest selbst
+
+ZIEL: Zentrale Koordination, richtige Verteilung.`,
+  },
+  catering: {
+    id: "catering",
+    name: "Alex",
+    role: "Catering & Events",
+    animal: "Eichhörnchen-Dame",
+    accent: "#C4A87C",
+    image: "/Alex.png",
+    systemPrompt: ALEX_SYSTEM,
+    useShopData: true,
   },
   controlling: {
     id: "controlling",
@@ -67,17 +81,9 @@ const AGENTS = {
     accent: "#8B7355",
     image: "/lorena.png",
     systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Lorena, der analytische Finanz- und Kennzahlen-Spezialist. Du unterstützt bei betriebswirtschaftlichen Analysen, Kennzahleninterpretationen, Risikoerkennung, Kostenkontrolle, Filialvergleichen.
-
-FACHKOMPETENZEN:
-Finanzanalysen: Umsatzanalysen, Margenanalysen, EBITDA, Kostenentwicklungen, Warenaufwand, Personalkosten
-Filialvergleiche: Performance-Vergleiche, Abweichungsanalysen, Trendbetrachtungen
-Schweizer Rechnungswesen: Bilanzlogik, Erfolgsrechnung, Mehrwertsteuer, Vorsteuer
-Gastronomie-Logik: Filialstrukturen, Take-Away vs. Café, Food Waste, Margenprobleme
-
-ARBEITSWEISE: Analytisch, kritisch, faktenbasiert, wirtschaftlich orientiert. Zahlen hinterfragen, Risiken klar benennen.
-
-ZIEL: Transparenz schaffen, Risiken früh erkennen, Entscheidungen vorbereiten.`,
+Du bist Lorena, Finanz-Spezialistin. Du analysierst Finanzen, Kennzahlen, Kostenentwicklungen.
+ARBEITSWEISE: Analytisch, kritisch, faktenbasiert.
+ZIEL: Transparenz, Risiken früh erkennen.`,
   },
   filialen: {
     id: "filialen",
@@ -87,16 +93,9 @@ ZIEL: Transparenz schaffen, Risiken früh erkennen, Entscheidungen vorbereiten.`
     accent: "#A89968",
     image: "/sabrina.png",
     systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Sabrina, Spezialistin für Filialperformance, operative Abläufe, Standortanalysen, Kundenfeedback.
-
-FACHKOMPETENZEN:
-Filialanalysen: Umsatzentwicklungen, Performance-Vergleiche, Filialbewertungen
-Operative Themen: Servicequalität, Wartezeiten, Kundenfeedback, Food Waste, Sortimentsprobleme
-Kundenfeedback: Google-Bewertungen analysieren, Reklamationen auswerten, Stimmungsbilder erfassen
-
-ARBEITSWEISE: Praxisorientiert, analytisch, lösungsorientiert, kundenorientiert. Operativ, wirtschaftlich, pragmatisch.
-
-ZIEL: Filialen verbessern, Prozesse optimieren, Kundenzufriedenheit erhöhen.`,
+Du bist Sabrina, Filialmanagement-Spezialistin. Du analysierst Filialperformance, operative Themen, Food Waste.
+ARBEITSWEISE: Praxisorientiert, analytisch, lösungsorientiert.
+ZIEL: Filialen verbessern, Prozesse optimieren.`,
   },
   admin: {
     id: "admin",
@@ -106,64 +105,9 @@ ZIEL: Filialen verbessern, Prozesse optimieren, Kundenzufriedenheit erhöhen.`,
     accent: "#B8956A",
     image: "/mirjam.png",
     systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Mirjam, Spezialistin für Administration, Kommunikation, Organisation, Dokumente, Kundenanliegen.
-
-FACHKOMPETENZEN:
-Kommunikation: Kundenantworten, Reklamationen, Briefe, Lieferantenmails, interne Kommunikation
-Administration: Dokumentenmanagement, organisatorische Unterstützung, Aufbereitung von Informationen
-Kundenservice: Professionelle Antworten, lösungsorientierte Kommunikation, kundenfreundlich
-
-REKLAMATIONSLOGIK: Verständnis zeigen, sachlich bleiben, lösungsorientiert antworten. Keine Schuldeingeständnisse.
-
-SPRACHE: Schweizer Hochdeutsch, niemals ß, klare Sprache, kurze und verständliche Sätze.
-
-ZIEL: Administration entlasten, Kommunikation vereinheitlichen, Professionalität erhöhen.`,
-  },
-  catering: {
-    id: "catering",
-    name: "Alex",
-    role: "Catering & Events",
-    animal: "Eichhörnchen-Dame",
-    accent: "#C4A87C",
-    image: "/Alex.png",
-    systemPrompt: `${GLOBAL_CONTEXT}
-Du bist Alex, die Catering- und Event-Spezialistin der Rolf Maier & Co AG. Du bist Expertin für Catering-Offerten, Eventberatung, Kundenberatung und verkaufsstarke Angebotsentwicklung.
-
-KERNKOMPETENZEN:
-Offertenerstellung: Professionelle, strukturierte Catering-Offerten für alle Anlässe
-Kundenberatung: Analyse von Anfragen, Produktempfehlungen, Mengenberatung
-Produktkombinationen: Sinnvolle Zusammenstellung von Speisen, Getränken, Gebäck
-Eventlogik: Geburtstage, Firmenanlässe, Hochzeiten, Apéros, Brunches, Konferenzen
-Angebotslogik: Berücksichtigung von Anzahl Personen, Budget, Anlass, Tageszeit, Niveau
-
-PRODUKTSORTIMENT:
-Apéro-Platten, Sandwiches, Canapés, Süssgebäck, Desserts, Torten, Frühstücksangebote, Brunches, Getränke, Speisen nach Mass
-
-ARBEITSWEISE:
-Verkaufsorientiert, kundenfreundlich, strukturiert, effizient, lösungsorientiert, praxisnah, wirtschaftlich, pragmatisch
-
-OFFERTENQUALITÄT:
-- Kurze, ansprechende Einleitung mit Bezug zur Anfrage
-- Klare, übersichtliche Angebotsstruktur
-- Mengen und Preise (wenn verfügbar)
-- Varianten und Optionen anbieten (einfach bis exklusiv)
-- Organisatorische Hinweise (Lieferung, Abholung, Aufbau, Timing)
-- Professioneller, freundlicher Abschluss
-
-VERKAUFSLOGIK:
-- Aktiv mitdenken und sinnvolle Vorschläge machen
-- Alternativen anbieten
-- Upselling erkennen (Getränke, Desserts, Extras)
-- Bleibt seriös und glaubwürdig
-- Ungeklärte Fragen gezielt stellen
-
-WICHTIG:
-- Keine unrealistischen Zusagen
-- Keine erfundenen Preise
-- Strukturiert und verständlich schreiben
-- Wenn Infos fehlen (Personen, Budget, Anlass): gezielt nachfragen
-
-ZIEL: Anfragen schnell professionell bearbeiten, Offerten erstellen, Verkaufschancen steigern, Kunden begeistern, administrativen Aufwand reduzieren, Catering-Umsatz steigern.`,
+Du bist Mirjam, Administration- und Kommunikations-Spezialistin. Du erstellst Briefe, bearbeitest Reklamationen, verwaltest Dokumente.
+ARBEITSWEISE: Strukturiert, freundlich, professionell.
+ZIEL: Administration entlasten, Kommunikation vereinheitlichen.`,
   },
 };
 
@@ -174,43 +118,66 @@ export default function AgentSystem() {
   const [activeAgent, setActiveAgent] = useState<string | null>(null);
   const [routingInfo, setRoutingInfo] = useState<string | null>(null);
   const [conversationHistory, setConversationHistory] = useState<any[]>([]);
+  const [shopData, setShopData] = useState<any[]>([]);
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
+  // Shop-Daten laden
+  useEffect(() => {
+    async function loadShopData() {
+      try {
+        const response = await fetch("/api/shop");
+        const data = await response.json();
+        if (data.success) {
+          setShopData(data.products);
+        }
+      } catch (error) {
+        console.error("Shop data load error:", error);
+      }
+    }
+    loadShopData();
+  }, []);
+
   function routeMessage(text: string) {
     const t = text.toLowerCase();
-    const catering = ["catering","offerte","event","hochzeit","geburtstag","apéro","brunch","events","veranstaltung","festlich","buffet","empfang","feier","gala"];
-    const controlling = ["umsatz","kosten","budget","marge","kennzahl","zahlen","gewinn","verlust","abweichung","finanzen","controlling","wirtschaftlich","einnahmen","ausgaben","rechnung","preis","tarif","analyse","ebitda"];
-    const filialen = ["filiale","standort","filialen","personal","öffnungszeit","sortiment","café","produktion","mitarbeiter","schicht","verkauf","laden","geschäft","performance","kundenfeedback","food waste"];
-    const admin = ["reklamation","dokument","vorlage","brief","kommunikation","termin","organisation","ablauf","digitalisierung","prozess","email","e-mail","schreiben","formulierung"];
+    const catering = ["catering", "offerte", "event", "hochzeit", "geburtstag", "apéro", "brunch", "events", "veranstaltung", "buffet"];
+    const controlling = ["umsatz", "kosten", "budget", "marge", "kennzahl", "zahlen", "gewinn"];
+    const filialen = ["filiale", "standort", "food waste", "performance", "kundenfeedback"];
+    const admin = ["reklamation", "dokument", "vorlage", "brief", "kommunikation"];
 
     const scoreC = catering.filter((w) => t.includes(w)).length;
     const scoreF = controlling.filter((w) => t.includes(w)).length;
     const scoreL = filialen.filter((w) => t.includes(w)).length;
     const scoreA = admin.filter((w) => t.includes(w)).length;
 
-    // Catering hat Priorität
     if (scoreC >= 1 && scoreC >= scoreF && scoreC >= scoreL && scoreC >= scoreA)
-      return { agent: "catering", shouldRoute: true, grund: "Weiterleitung zu Alex (Catering & Events)" };
+      return { agent: "catering", grund: "Weiterleitung zu Alex (Catering & Events)" };
     if (scoreF >= 1 && scoreF > scoreC && scoreF > scoreL && scoreF > scoreA)
-      return { agent: "controlling", shouldRoute: true, grund: "Weiterleitung zu Lorena (Controlling)" };
+      return { agent: "controlling", grund: "Weiterleitung zu Lorena (Controlling)" };
     if (scoreL >= 1 && scoreL > scoreC && scoreL > scoreF && scoreL > scoreA)
-      return { agent: "filialen", shouldRoute: true, grund: "Weiterleitung zu Sabrina (Filialmanagement)" };
+      return { agent: "filialen", grund: "Weiterleitung zu Sabrina (Filialmanagement)" };
     if (scoreA >= 1 && scoreA > scoreC && scoreA > scoreF && scoreA > scoreL)
-      return { agent: "admin", shouldRoute: true, grund: "Weiterleitung zu Mirjam (Administration)" };
-    
-    // ALLES ANDERE → Leon antwortet
-    return { agent: "orchestrator", shouldRoute: false, grund: null };
+      return { agent: "admin", grund: "Weiterleitung zu Mirjam (Administration)" };
+
+    return { agent: "orchestrator", grund: null };
   }
 
-  async function callClaude(systemPrompt: string, history: any[]) {
+  async function callClaude(systemPrompt: string, history: any[], includeShopData: boolean = false) {
+    let enhancedPrompt = systemPrompt;
+
+    if (includeShopData && shopData.length > 0) {
+      enhancedPrompt += `\n\nDIE FOLGENDEN SIND UNSERE ECHTEN SHOP-PRODUKTE MIT AKTUELLEN PREISEN:\n`;
+      enhancedPrompt += `\`\`\`json\n${JSON.stringify(shopData, null, 2)}\n\`\`\`\n`;
+      enhancedPrompt += `\nNutze DIESE Produkte und Preise für deine Angebote!`;
+    }
+
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ systemPrompt, messages: history }),
+      body: JSON.stringify({ systemPrompt: enhancedPrompt, messages: history }),
     });
     const data = await response.json();
     if (data.error) throw new Error(data.error);
@@ -234,7 +201,9 @@ export default function AgentSystem() {
       if (routing.grund) setRoutingInfo(routing.grund);
 
       const agent = AGENTS[routing.agent as keyof typeof AGENTS];
-      const answer = await callClaude(agent.systemPrompt, updatedHistory);
+      const useShop = routing.agent === "catering" && shopData.length > 0;
+
+      const answer = await callClaude(agent.systemPrompt, updatedHistory, useShop);
 
       setConversationHistory([...updatedHistory, { role: "assistant", content: answer }]);
       setMessages((prev) => [
@@ -269,7 +238,6 @@ export default function AgentSystem() {
 
   return (
     <div style={s.root}>
-      {/* Header */}
       <div style={s.header}>
         <div style={s.headerContent}>
           <img src="/beck-maier-logo.png" alt="Beck Maier Logo" style={{ height: 50, objectFit: "contain" }} />
@@ -288,7 +256,6 @@ export default function AgentSystem() {
         </div>
       </div>
 
-      {/* Memory bar */}
       {conversationHistory.length > 0 && (
         <div style={s.memoryBar}>
           <span style={s.memoryDot} />
@@ -301,7 +268,6 @@ export default function AgentSystem() {
         </div>
       )}
 
-      {/* Messages */}
       <div style={s.messages}>
         {messages.length === 0 && (
           <div style={s.empty}>
@@ -314,9 +280,9 @@ export default function AgentSystem() {
             </div>
             <div style={s.exampleGrid}>
               {[
+                "Ich brauche Catering für 30 Personen zu einem Geburtstag",
                 "Wer ist Alex und was macht sie?",
-                "Erstelle eine Catering-Offerte für einen Geburtstag",
-                "Wie entwickelt sich unser Food Waste diese Woche?",
+                "Erstelle eine Catering-Offerte für einen Firmenanlass",
               ].map((ex) => (
                 <div key={ex} style={s.example} onClick={() => setInput(ex)}>
                   {ex}
@@ -383,7 +349,6 @@ export default function AgentSystem() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
       <div style={s.inputArea}>
         <textarea style={s.textarea} placeholder="Stellen Sie Ihre Frage an Leon..." value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} rows={2} />
         <button style={{ ...s.sendBtn, opacity: loading || !input.trim() ? 0.5 : 1, cursor: loading || !input.trim() ? "not-allowed" : "pointer" }} onClick={handleSend} disabled={loading || !input.trim()}>
@@ -410,7 +375,6 @@ function TeamCard({ agent, isActive }: { agent: (typeof AGENTS)[keyof typeof AGE
   );
 }
 
-// Styles mit Beck Maier Design
 const COLORS = {
   primary: "#8B6F47",
   accent: "#D4A574",
