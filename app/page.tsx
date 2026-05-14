@@ -59,9 +59,6 @@ Basierend auf den Infos: Erstelle 3 konkrete MENÜ-VARIANTEN:
 
 Format jeder Variante:
 | Produkt | Menge | à CHF | Total |
-|---------|-------|-------|--------|
-
-Beschreibung: kurz und ansprechend
 
 PHASE 3 - HTML-OFFERTE GENERIEREN:
 WICHTIG: SCHREIBE KEINEN HTML-CODE! 
@@ -77,8 +74,7 @@ Wenn Kunde "Variante 1/2/3" oder "Standard/Einfach/Premium" schreibt:
        "name": "Standard",
        "pricePerPerson": 32,
        "items": [
-         {"name": "Salzstangen & Nussgebäck", "quantity": 250, "price": 8},
-         {"name": "Belegte Brote (3 Sorten)", "quantity": 12, "price": 3.80}
+         {"name": "Salzstangen & Nussgebäck", "quantity": 250, "price": 8}
        ]
      }],
      "organizatorisch": {"Lieferung": "Selbstabholung", "Zeitpunkt": "Nach Absprache"}
@@ -235,18 +231,27 @@ export default function AgentSystem() {
   function routeMessage(text: string, existingAgent: string | null) {
     const t = text.toLowerCase();
     
+    // REGEL 1: Wenn bereits ein Agent aktiv ist → BLEIB BEI DIESEM AGENT
+    // (egal was der User schreibt)
     if (existingAgent && existingAgent !== "orchestrator") {
       return { agent: existingAgent, grund: null };
     }
 
-    if (t.includes("report") || t.includes("controlling") || t.includes("analyse"))
-      return { agent: "controlling", grund: "Lorena generiert Report" };
-    if (t.includes("filial") || t.includes("performance"))
-      return { agent: "filialen", grund: "Sabrina generiert Report" };
-    if (t.includes("catering") || t.includes("event") || t.includes("hochzeit") || t.includes("geburtstag") || t.includes("apéro"))
+    // REGEL 2: Neue Anfrage → Route zur richtigen Person
+    // Catering hat Priorität vor Report-Keywords
+    if (t.includes("catering") || t.includes("event") || t.includes("hochzeit") || t.includes("geburtstag") || t.includes("apéro") || t.includes("party")) {
       return { agent: "catering", grund: "Alex erstellt Offerte" };
-    if (t.includes("reklamation") || t.includes("brief"))
+    }
+    
+    if (t.includes("report") || t.includes("controlling") || t.includes("analyse")) {
+      return { agent: "controlling", grund: "Lorena generiert Report" };
+    }
+    if (t.includes("filial") || t.includes("performance")) {
+      return { agent: "filialen", grund: "Sabrina generiert Report" };
+    }
+    if (t.includes("reklamation") || t.includes("brief")) {
       return { agent: "admin", grund: "Mirjam bearbeitet Anfrage" };
+    }
     
     return { agent: "orchestrator", grund: null };
   }
@@ -322,11 +327,14 @@ export default function AgentSystem() {
     const updatedHistory = [...conversationHistory, { role: "user", content: userText }];
 
     try {
+      // SMART ROUTING: Übergebe currentChatAgent
       const routing = routeMessage(userText, currentChatAgent);
       const selectedAgent = routing.agent;
       
       setActiveAgent(selectedAgent);
       if (routing.grund) setRoutingInfo(routing.grund);
+      
+      // Speichere den aktiven Agent
       setCurrentChatAgent(selectedAgent);
 
       const agent = AGENTS[selectedAgent];
