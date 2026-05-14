@@ -1,7 +1,17 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import Image from "next/image";
+import { AVATARS_DATA } from "./avatars";
+
+// ─── Beck Maier Color Palette ─────────────────────────────────────────────────
+const COLORS = {
+  primary: "#8B6F47",      // Warm brown
+  accent: "#D4A574",       // Warm beige
+  light: "#F5F1EB",        // Cream
+  text: "#3D3D3D",         // Dark text
+  border: "#D4C5B9",       // Light border
+  background: "#FAFAF8",   // Off-white
+};
 
 // ─── Agent Config ─────────────────────────────────────────────────────────────
 
@@ -22,7 +32,7 @@ const AGENTS = {
     name: "Leon",
     role: "Orchestrator",
     animal: "Löwe",
-    accent: "#e8c84a",
+    accent: "#D4A574",
     systemPrompt: `${GLOBAL_CONTEXT}
 Du bist Leon, die zentrale Steuerungs- und Koordinationsinstanz des KI-Unternehmenssystems. Du arbeitest wie ein Chief of Staff bzw. operativer Geschäftsführer des KI-Systems.
 
@@ -55,7 +65,7 @@ ZIEL: KI-System steuern, Aufgaben effizient verteilen, Spezialwissen koordiniere
     name: "Lorena",
     role: "Controlling",
     animal: "Füchsin",
-    accent: "#4fc3f7",
+    accent: "#8B7355",
     systemPrompt: `${GLOBAL_CONTEXT}
 Du bist Lorena, der analytische Finanz- und Kennzahlen-Spezialist der Rolf Maier & Co AG. Du unterstützt die Geschäftsleitung bei betriebswirtschaftlichen Analysen, Kennzahleninterpretationen, Risikoerkennung, Kostenkontrolle, Filialvergleichen und Entscheidungsgrundlagen. Du arbeitest wie ein strukturierter Controller mit unternehmerischem Denken.
 
@@ -77,7 +87,7 @@ ZIEL: Transparenz schaffen, Risiken früh erkennen, Entscheidungen vorbereiten, 
     name: "Sabrina",
     role: "Filialmanagement",
     animal: "Reh-Dame",
-    accent: "#b39ddb",
+    accent: "#A89968",
     systemPrompt: `${GLOBAL_CONTEXT}
 Du bist Sabrina, Spezialistin für Filialperformance, operative Abläufe, Standortanalysen, Kundenfeedback, Prozessqualität und operative Optimierung der Rolf Maier & Co AG. Du unterstützt die Geschäftsleitung bei der Analyse und Verbesserung der einzelnen Standorte.
 
@@ -97,7 +107,7 @@ ZIEL: Filialen verbessern, Prozesse optimieren, Probleme früh erkennen, Kundenz
     name: "Mirjam",
     role: "Administration",
     animal: "Hasen-Dame",
-    accent: "#81c784",
+    accent: "#B8956A",
     systemPrompt: `${GLOBAL_CONTEXT}
 Du bist Mirjam, Spezialistin für Administration, Kommunikation, Organisation, Dokumente, Kundenanliegen und Reklamationen der Rolf Maier & Co AG. Du unterstützt die Geschäftsleitung bei administrativen und kommunikativen Aufgaben.
 
@@ -131,66 +141,16 @@ export default function AgentSystem() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, loading]);
 
-  // Orchestrator: regelbasiertes Routing
   function routeMessage(text: string) {
     const t = text.toLowerCase();
     const controlling = [
-      "umsatz",
-      "kosten",
-      "budget",
-      "marge",
-      "kennzahl",
-      "zahlen",
-      "food waste",
-      "gewinn",
-      "verlust",
-      "abweichung",
-      "finanzen",
-      "controlling",
-      "wirtschaftlich",
-      "einnahmen",
-      "ausgaben",
-      "rechnung",
-      "preis",
-      "tarif",
-      "analyse",
-      "ebitda",
-      "marge",
+      "umsatz","kosten","budget","marge","kennzahl","zahlen","food waste","gewinn","verlust","abweichung","finanzen","controlling","wirtschaftlich","einnahmen","ausgaben","rechnung","preis","tarif","analyse","ebitda","marge",
     ];
     const filialen = [
-      "filiale",
-      "standort",
-      "filialen",
-      "personal",
-      "öffnungszeit",
-      "sortiment",
-      "café",
-      "produktion",
-      "mitarbeiter",
-      "schicht",
-      "verkauf",
-      "laden",
-      "geschäft",
-      "performance",
-      "kundenfeedback",
+      "filiale","standort","filialen","personal","öffnungszeit","sortiment","café","produktion","mitarbeiter","schicht","verkauf","laden","geschäft","performance","kundenfeedback",
     ];
     const admin = [
-      "reklamation",
-      "dokument",
-      "vorlage",
-      "brief",
-      "kommunikation",
-      "termin",
-      "organisation",
-      "ablauf",
-      "digitalisierung",
-      "prozess",
-      "email",
-      "e-mail",
-      "hallo",
-      "hilfe",
-      "schreiben",
-      "formulierung",
+      "reklamation","dokument","vorlage","brief","kommunikation","termin","organisation","ablauf","digitalisierung","prozess","email","e-mail","hallo","hilfe","schreiben","formulierung",
     ];
 
     const scoreC = controlling.filter((w) => t.includes(w)).length;
@@ -226,42 +186,25 @@ export default function AgentSystem() {
     setRoutingInfo(null);
 
     setMessages((prev) => [...prev, { role: "user", text: userText }]);
-    const updatedHistory = [
-      ...conversationHistory,
-      { role: "user", content: userText },
-    ];
+    const updatedHistory = [...conversationHistory, { role: "user", content: userText }];
 
     try {
-      // Orchestrator: regelbasiertes Routing
       const routing = routeMessage(userText);
       setActiveAgent(routing.agent);
       setRoutingInfo(routing.grund);
 
-      // Spezialist antwortet via API
       const agent = AGENTS[routing.agent as keyof typeof AGENTS];
       const answer = await callClaude(agent.systemPrompt, updatedHistory);
 
-      setConversationHistory([
-        ...updatedHistory,
-        { role: "assistant", content: answer },
-      ]);
+      setConversationHistory([...updatedHistory, { role: "assistant", content: answer }]);
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          text: answer,
-          agent: routing.agent,
-          grund: routing.grund,
-        },
+        { role: "assistant", text: answer, agent: routing.agent, grund: routing.grund },
       ]);
     } catch (err: any) {
       setMessages((prev) => [
         ...prev,
-        {
-          role: "assistant",
-          text: `Fehler: ${err.message}`,
-          agent: "error",
-        },
+        { role: "assistant", text: `Fehler: ${err.message}`, agent: "error" },
       ]);
     }
 
@@ -282,26 +225,22 @@ export default function AgentSystem() {
     }
   }
 
-  const specialists = Object.values(AGENTS).filter(
-    (a) => a.id !== "orchestrator"
-  );
+  const specialists = Object.values(AGENTS).filter((a) => a.id !== "orchestrator");
 
   return (
     <div style={s.root}>
       {/* Header */}
       <div style={s.header}>
-        <div style={s.headerLeft}>
-          <div style={s.logo}>RM</div>
-          <div>
-            <div style={s.headerTitle}>Rolf Maier & Co AG</div>
+        <div style={s.headerContent}>
+          <div style={s.logo}>🍰</div>
+          <div style={s.headerText}>
+            <div style={s.headerTitle}>Beck Maier & Co AG</div>
+            <div style={s.tagline}>Gut, Gesund, Genial</div>
             <div style={s.headerSub}>KI-Agentensystem</div>
           </div>
         </div>
         <div style={s.teamRow}>
-          <TeamCard
-            agent={AGENTS.orchestrator}
-            isActive={loading && !activeAgent}
-          />
+          <TeamCard agent={AGENTS.orchestrator} isActive={loading && !activeAgent} />
           <div style={s.divider} />
           {specialists.map((a) => (
             <TeamCard key={a.id} agent={a} isActive={activeAgent === a.id} />
@@ -314,8 +253,7 @@ export default function AgentSystem() {
         <div style={s.memoryBar}>
           <span style={s.memoryDot} />
           <span style={s.memoryText}>
-            {Math.floor(conversationHistory.length / 2)} Nachrichten im
-            Gedächtnis
+            {Math.floor(conversationHistory.length / 2)} Nachrichten im Gedächtnis
           </span>
           <button style={s.clearBtn} onClick={handleClear}>
             Neu starten
@@ -328,18 +266,15 @@ export default function AgentSystem() {
         {messages.length === 0 && (
           <div style={s.empty}>
             <div style={s.emptyIcon}>
-              <Image
-                src="/leon.png"
+              <img
+                src={AVATARS_DATA.leon}
                 alt="Leon"
-                width={80}
-                height={80}
-                style={{ borderRadius: "50%", objectFit: "cover" }}
+                style={{ width: 120, height: 120, borderRadius: "50%", objectFit: "cover", border: `4px solid ${COLORS.accent}` }}
               />
             </div>
-            <div style={s.emptyTitle}>Guten Tag, ich bin Leon.</div>
+            <div style={s.emptyTitle}>Willkommen bei Leon</div>
             <div style={s.emptySub}>
-              Ich leite Ihre Anfrage automatisch an Lorena, Sabrina oder
-              Mirjam weiter.
+              Ich bin der Orchestrator. Ich leite Ihre Anfrage automatisch an Lorena, Sabrina oder Mirjam weiter.
             </div>
             <div style={s.exampleGrid}>
               {[
@@ -363,26 +298,18 @@ export default function AgentSystem() {
               </div>
             );
           }
-          const ag =
-            msg.agent && AGENTS[msg.agent as keyof typeof AGENTS];
+          const ag = msg.agent && AGENTS[msg.agent as keyof typeof AGENTS];
           return (
             <div key={i} style={s.assistantRow}>
               {ag && (
                 <div style={s.agentHeader}>
-                  <Image
-                    src={`/${ag.id}.png`}
+                  <img
+                    src={AVATARS_DATA[ag.id]}
                     alt={ag.name}
-                    width={38}
-                    height={38}
-                    style={{ borderRadius: "50%", objectFit: "cover" }}
+                    style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${ag.accent}` }}
                   />
                   <div>
-                    <span
-                      style={{
-                        ...s.agentName,
-                        color: ag.accent,
-                      }}
-                    >
+                    <span style={{ ...s.agentName, color: ag.accent }}>
                       {ag.name}
                     </span>
                     <span style={s.agentRole}> · {ag.role}</span>
@@ -390,12 +317,7 @@ export default function AgentSystem() {
                   </div>
                 </div>
               )}
-              <div
-                style={{
-                  ...s.assistantBubble,
-                  borderLeftColor: ag?.accent || "#555",
-                }}
-              >
+              <div style={{ ...s.assistantBubble, borderLeftColor: ag?.accent || COLORS.primary }}>
                 {msg.text.split("\n").map((line: string, j: number) => (
                   <span key={j}>
                     {line}
@@ -408,27 +330,19 @@ export default function AgentSystem() {
         })}
 
         {loading && (() => {
-          const ag =
-            activeAgent && AGENTS[activeAgent as keyof typeof AGENTS]
-              ? AGENTS[activeAgent as keyof typeof AGENTS]
-              : AGENTS.orchestrator;
+          const ag = activeAgent && AGENTS[activeAgent as keyof typeof AGENTS]
+            ? AGENTS[activeAgent as keyof typeof AGENTS]
+            : AGENTS.orchestrator;
           return (
             <div style={s.assistantRow}>
               <div style={s.agentHeader}>
-                <Image
-                  src={`/${ag.id}.png`}
+                <img
+                  src={AVATARS_DATA[ag.id]}
                   alt={ag.name}
-                  width={38}
-                  height={38}
-                  style={{ borderRadius: "50%", objectFit: "cover" }}
+                  style={{ width: 52, height: 52, borderRadius: "50%", objectFit: "cover", border: `2px solid ${ag.accent}` }}
                 />
                 <div>
-                  <span
-                    style={{
-                      ...s.agentName,
-                      color: ag.accent,
-                    }}
-                  >
+                  <span style={{ ...s.agentName, color: ag.accent }}>
                     {activeAgent ? ag.name : "Leon"}
                   </span>
                   <span style={s.agentRole}>
@@ -453,17 +367,18 @@ export default function AgentSystem() {
       <div style={s.inputArea}>
         <textarea
           style={s.textarea}
-          placeholder="Ihre Frage an das Team..."
+          placeholder="Stellen Sie Ihre Frage an das Team..."
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          rows={1}
+          rows={2}
         />
         <button
           style={{
             ...s.sendBtn,
-            opacity: loading || !input.trim() ? 0.4 : 1,
+            opacity: loading || !input.trim() ? 0.5 : 1,
             cursor: loading || !input.trim() ? "not-allowed" : "pointer",
+            background: COLORS.primary,
           }}
           onClick={handleSend}
           disabled={loading || !input.trim()}
@@ -487,42 +402,39 @@ function TeamCard({
       style={{
         display: "flex",
         alignItems: "center",
-        gap: "9px",
-        padding: "8px 12px",
+        gap: "12px",
+        padding: "12px 16px",
         borderRadius: "12px",
-        border: "1px solid",
-        borderColor: isActive ? agent.accent : "#1e1e1e",
-        background: isActive ? `${agent.accent}12` : "#111",
-        transform: isActive ? "translateY(-2px)" : "none",
-        boxShadow: isActive ? `0 4px 18px ${agent.accent}20` : "none",
+        border: `2px solid ${isActive ? agent.accent : COLORS.border}`,
+        background: isActive ? `${agent.accent}15` : COLORS.light,
+        transform: isActive ? "scale(1.05)" : "scale(1)",
         transition: "all 0.25s ease",
-        minWidth: "130px",
+        minWidth: "150px",
       }}
     >
       <div style={{ position: "relative", flexShrink: 0 }}>
-        <Image
-          src={`/${agent.id}.png`}
+        <img
+          src={AVATARS_DATA[agent.id]}
           alt={agent.name}
-          width={48}
-          height={48}
           style={{
+            width: 56,
+            height: 56,
             borderRadius: "50%",
             objectFit: "cover",
-            border: isActive ? `2px solid ${agent.accent}` : "2px solid #1e1e1e",
-            transition: "border-color 0.25s ease",
+            border: `2px solid ${agent.accent}`,
           }}
         />
         {isActive && (
           <div
             style={{
               position: "absolute",
-              bottom: 1,
-              right: 1,
-              width: 10,
-              height: 10,
+              bottom: -2,
+              right: -2,
+              width: 16,
+              height: 16,
               borderRadius: "50%",
               background: agent.accent,
-              border: "2px solid #0d0d0d",
+              border: `2px solid white`,
             }}
           />
         )}
@@ -530,9 +442,9 @@ function TeamCard({
       <div>
         <div
           style={{
-            fontWeight: "600",
-            fontSize: "13px",
-            color: isActive ? agent.accent : "#bbb",
+            fontWeight: "700",
+            fontSize: "14px",
+            color: isActive ? agent.accent : COLORS.text,
             transition: "color 0.2s",
           }}
         >
@@ -540,10 +452,10 @@ function TeamCard({
         </div>
         <div
           style={{
-            fontSize: "10px",
-            color: "#444",
-            fontFamily: "'IBM Plex Mono', monospace",
-            letterSpacing: "0.03em",
+            fontSize: "11px",
+            color: COLORS.primary,
+            fontFamily: "Georgia, serif",
+            letterSpacing: "0.05em",
           }}
         >
           {agent.role}
@@ -551,8 +463,9 @@ function TeamCard({
         <div
           style={{
             fontSize: "10px",
-            color: "#2e2e2e",
+            color: COLORS.text,
             fontStyle: "italic",
+            opacity: 0.7,
           }}
         >
           {agent.animal}
@@ -562,242 +475,262 @@ function TeamCard({
   );
 }
 
-// Styles
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const s = {
   root: {
     display: "flex",
     flexDirection: "column" as const,
     height: "100vh",
-    background: "#0d0d0d",
-    color: "#e8e8e8",
-    fontFamily: "'IBM Plex Sans', sans-serif",
-    fontSize: "14px",
+    background: COLORS.background,
+    color: COLORS.text,
+    fontFamily: "Georgia, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontSize: "16px",
   },
   header: {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "14px 20px",
-    borderBottom: "1px solid #1a1a1a",
-    background: "#0f0f0f",
+    padding: "20px 28px",
+    borderBottom: `3px solid ${COLORS.accent}`,
+    background: "white",
     flexWrap: "wrap" as const,
-    gap: "12px",
+    gap: "20px",
   },
-  headerLeft: {
+  headerContent: {
     display: "flex",
     alignItems: "center",
-    gap: "12px",
+    gap: "16px",
   },
   logo: {
-    width: "36px",
-    height: "36px",
-    background: "#e8c84a",
-    color: "#0d0d0d",
-    borderRadius: "6px",
+    fontSize: "48px",
+    lineHeight: 1,
+  },
+  headerText: {
     display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontWeight: "700",
-    fontFamily: "'IBM Plex Mono', monospace",
-    fontSize: "13px",
+    flexDirection: "column" as const,
+    gap: "2px",
   },
   headerTitle: {
-    fontWeight: "600",
-    fontSize: "15px",
+    fontWeight: "700",
+    fontSize: "20px",
+    color: COLORS.primary,
+    fontFamily: "Georgia, serif",
+  },
+  tagline: {
+    fontSize: "12px",
+    color: COLORS.accent,
+    fontFamily: "Georgia, serif",
+    fontStyle: "italic",
+    letterSpacing: "0.1em",
   },
   headerSub: {
-    fontSize: "11px",
-    color: "#555",
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontSize: "12px",
+    color: COLORS.text,
+    fontFamily: "'Courier New', monospace",
+    opacity: 0.6,
   },
   teamRow: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
+    gap: "12px",
     flexWrap: "wrap" as const,
   },
   divider: {
     width: "1px",
-    height: "52px",
-    background: "#1e1e1e",
-    margin: "0 4px",
+    height: "70px",
+    background: COLORS.border,
+    margin: "0 8px",
   },
   memoryBar: {
     display: "flex",
     alignItems: "center",
-    gap: "8px",
-    padding: "5px 20px",
-    background: "#0a0a0a",
-    borderBottom: "1px solid #141414",
-    fontSize: "11px",
-    fontFamily: "'IBM Plex Mono', monospace",
+    gap: "12px",
+    padding: "10px 28px",
+    background: COLORS.light,
+    borderBottom: `1px solid ${COLORS.border}`,
+    fontSize: "13px",
+    fontFamily: "'Courier New', monospace",
   },
   memoryDot: {
-    width: "6px",
-    height: "6px",
-    background: "#e8c84a",
+    width: "8px",
+    height: "8px",
+    background: COLORS.accent,
     borderRadius: "50%",
     display: "inline-block",
   },
   memoryText: {
-    color: "#3a3a3a",
+    color: COLORS.text,
+    opacity: 0.7,
   },
   clearBtn: {
-    background: "transparent",
-    border: "1px solid #1e1e1e",
-    borderRadius: "4px",
-    color: "#3a3a3a",
-    padding: "2px 8px",
-    fontSize: "10px",
+    background: "white",
+    border: `1px solid ${COLORS.border}`,
+    borderRadius: "6px",
+    color: COLORS.primary,
+    padding: "4px 12px",
+    fontSize: "12px",
     cursor: "pointer",
-    fontFamily: "'IBM Plex Mono', monospace",
+    fontFamily: "'Courier New', monospace",
+    fontWeight: "600",
+    transition: "all 0.2s",
   },
   messages: {
     flex: 1,
     overflowY: "auto" as const,
-    padding: "24px",
+    padding: "32px",
     display: "flex",
     flexDirection: "column" as const,
-    gap: "24px",
+    gap: "28px",
   },
   empty: {
     margin: "auto",
     textAlign: "center" as const,
-    maxWidth: "440px",
-    padding: "32px 0",
+    maxWidth: "500px",
+    padding: "40px 0",
     display: "flex",
     flexDirection: "column" as const,
     alignItems: "center",
-    gap: "12px",
+    gap: "16px",
   },
   emptyIcon: {
     fontSize: "48px",
   },
   emptyTitle: {
-    fontSize: "20px",
-    fontWeight: "600",
-    color: "#ddd",
+    fontSize: "28px",
+    fontWeight: "700",
+    color: COLORS.primary,
+    fontFamily: "Georgia, serif",
   },
   emptySub: {
-    color: "#555",
-    lineHeight: "1.6",
-    fontSize: "13px",
+    color: COLORS.text,
+    lineHeight: "1.8",
+    fontSize: "15px",
+    opacity: 0.8,
   },
   exampleGrid: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "8px",
+    gap: "10px",
     width: "100%",
-    marginTop: "8px",
+    marginTop: "16px",
   },
   example: {
-    padding: "10px 14px",
-    background: "#141414",
-    border: "1px solid #1e1e1e",
-    borderRadius: "8px",
+    padding: "14px 18px",
+    background: COLORS.light,
+    border: `2px solid ${COLORS.border}`,
+    borderRadius: "10px",
     cursor: "pointer",
-    color: "#666",
-    fontSize: "12px",
+    color: COLORS.text,
+    fontSize: "14px",
     textAlign: "left" as const,
+    transition: "all 0.2s",
   },
   userRow: {
     display: "flex",
     justifyContent: "flex-end",
   },
   userBubble: {
-    maxWidth: "70%",
-    background: "#1a1a1a",
-    border: "1px solid #222",
-    borderRadius: "14px 14px 2px 14px",
-    padding: "10px 14px",
-    lineHeight: "1.6",
-    color: "#ddd",
+    maxWidth: "75%",
+    background: COLORS.primary,
+    border: "none",
+    borderRadius: "16px 16px 4px 16px",
+    padding: "14px 18px",
+    lineHeight: "1.7",
+    color: "white",
+    fontSize: "15px",
   },
   assistantRow: {
     display: "flex",
     flexDirection: "column" as const,
-    gap: "8px",
+    gap: "10px",
     maxWidth: "82%",
   },
   agentHeader: {
     display: "flex",
     alignItems: "flex-start",
-    gap: "10px",
+    gap: "12px",
   },
   agentName: {
-    fontWeight: "600",
-    fontSize: "13px",
+    fontWeight: "700",
+    fontSize: "15px",
+    fontFamily: "Georgia, serif",
   },
   agentRole: {
-    color: "#444",
-    fontSize: "12px",
-    fontFamily: "'IBM Plex Mono', monospace",
+    color: COLORS.text,
+    fontSize: "13px",
+    fontFamily: "'Courier New', monospace",
+    opacity: 0.7,
   },
   agentGrund: {
-    color: "#333",
-    fontSize: "11px",
-    marginTop: "2px",
-    fontStyle: "italic" as const,
+    color: COLORS.text,
+    fontSize: "12px",
+    marginTop: "3px",
+    fontStyle: "italic",
+    opacity: 0.6,
   },
   assistantBubble: {
-    background: "#111",
-    border: "1px solid #1a1a1a",
-    borderLeft: "3px solid",
-    borderRadius: "2px 14px 14px 14px",
-    padding: "12px 16px",
-    lineHeight: "1.75",
-    color: "#ccc",
+    background: COLORS.light,
+    border: `2px solid ${COLORS.border}`,
+    borderLeft: "4px solid",
+    borderRadius: "4px 16px 16px 16px",
+    padding: "14px 18px",
+    lineHeight: "1.8",
+    color: COLORS.text,
+    fontSize: "15px",
   },
   loadingBubble: {
-    background: "#111",
-    border: "1px solid #1a1a1a",
-    borderRadius: "14px",
-    padding: "14px 18px",
+    background: COLORS.light,
+    border: `2px solid ${COLORS.border}`,
+    borderRadius: "16px",
+    padding: "16px 20px",
     display: "flex",
-    gap: "5px",
+    gap: "8px",
     alignItems: "center",
     width: "fit-content",
   },
   dot: {
-    width: "6px",
-    height: "6px",
-    background: "#333",
+    width: "8px",
+    height: "8px",
+    background: COLORS.accent,
     borderRadius: "50%",
     display: "inline-block",
     animation: "blink 1.2s infinite ease-in-out",
   },
   inputArea: {
-    padding: "14px 20px",
-    borderTop: "1px solid #1a1a1a",
-    background: "#0f0f0f",
+    padding: "18px 28px",
+    borderTop: `3px solid ${COLORS.accent}`,
+    background: "white",
     display: "flex",
-    gap: "10px",
+    gap: "14px",
     alignItems: "flex-end",
   },
   textarea: {
     flex: 1,
-    background: "#141414",
-    border: "1px solid #1e1e1e",
+    background: COLORS.light,
+    border: `2px solid ${COLORS.border}`,
     borderRadius: "12px",
-    padding: "10px 14px",
-    color: "#ddd",
-    fontSize: "14px",
-    lineHeight: "1.5",
-    maxHeight: "120px",
+    padding: "12px 16px",
+    color: COLORS.text,
+    fontSize: "16px",
+    lineHeight: "1.6",
+    maxHeight: "140px",
+    fontFamily: "Georgia, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+    fontWeight: "500",
   },
   sendBtn: {
-    width: "40px",
-    height: "40px",
-    background: "#e8c84a",
-    color: "#0d0d0d",
+    width: "48px",
+    height: "48px",
+    color: "white",
     border: "none",
     borderRadius: "12px",
-    fontSize: "18px",
+    fontSize: "20px",
     fontWeight: "700",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    transition: "opacity 0.2s",
+    transition: "all 0.2s",
     flexShrink: 0,
+    cursor: "pointer",
   },
 };
