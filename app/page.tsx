@@ -101,7 +101,6 @@ WICHTIGE REGELN:
 ✅ Preise REALISTISCH (Apéro: 25-35 CHF, Standard: 35-45 CHF)
 ✅ Beschreibungen kurz aber ansprechend
 ✅ Keine langen Erklärungen - nur konkrete Offerte`;
-```
 
 ---
 
